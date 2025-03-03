@@ -1,0 +1,135 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  lambda-nodejs22.x
+
+  Sample SAM Template for lambda-nodejs22.x
+
+Parameters:
+  RAKUTENAPPLICATIONID:
+    Type: String
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  AyanoLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action: "sts:AssumeRole"
+            Principal:
+              Service: lambda.amazonaws.com
+      Policies:
+        - PolicyName: "ayano-lambda-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "dynamodb:BatchGetItem"
+                  - "dynamodb:Describe*"
+                  - "dynamodb:List*"
+                  - "dynamodb:GetItem"
+                  - "dynamodb:Query"
+                  - "dynamodb:Scan"
+                  - "dynamodb:UpdateItem"
+                  - "dynamodb:PutItem"
+                Resource: "*"
+  SearchRakutenBookFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: search-rakuten-book/
+      Handler: app.lambdaHandler
+      Runtime: nodejs22.x
+      Role: !GetAtt AyanoLambdaRole.Arn
+      Architectures:
+        - x86_64
+      Events:
+        SearchRakutenBook:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /search-rakuten-book
+            Method: post
+      Environment:
+        Variables:
+          RAKUTEN_APPLICATION_ID: !Ref RAKUTENAPPLICATIONID
+  UpdateBooksFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: update-books/
+      Handler: app.lambdaHandler
+      Runtime: nodejs22.x
+      Role: !GetAtt AyanoLambdaRole.Arn
+      Architectures:
+        - x86_64
+      Events:
+        UpdateBook:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /update-books
+            Method: post
+  GetBooksFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: get-books/
+      Handler: app.lambdaHandler
+      Runtime: nodejs22.x
+      Role: !GetAtt AyanoLambdaRole.Arn
+      Architectures:
+        - x86_64
+      Events:
+        GetBooks:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /get-books
+            Method: post
+  GetBookFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: get-book/
+      Handler: app.lambdaHandler
+      Runtime: nodejs22.x
+      Role: !GetAtt AyanoLambdaRole.Arn
+      Architectures:
+        - x86_64
+      Events:
+        GetBook:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /get-book
+            Method: post
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  SearchRakutenBookApi:
+    Description: "API Gateway endpoint URL for Prod stage for Search Rakuten Book function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/search-rakuten-book/"
+  SearchRakutenBookFunction:
+    Description: "Search Rakuten Book Lambda Function ARN"
+    Value: !GetAtt SearchRakutenBookFunction.Arn
+  UpdateBooksApi:
+    Description: "API Gateway endpoint URL for Prod stage for Update Books function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/update-books/"
+  UpdateBooksFunction:
+    Description: "Update Books Lambda Function ARN"
+    Value: !GetAtt UpdateBooksFunction.Arn
+  GetBooksApi:
+    Description: "API Gateway endpoint URL for Prod stage for Get Books function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/get-books/"
+  GetBooksFunction:
+    Description: "Get Books Lambda Function ARN"
+    Value: !GetAtt GetBooksFunction.Arn
+  GetBookApi:
+    Description: "API Gateway endpoint URL for Prod stage for Get Book function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/get-book/"
+  GetBookFunction:
+    Description: "Get Book Lambda Function ARN"
+    Value: !GetAtt GetBookFunction.Arn
