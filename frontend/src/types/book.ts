@@ -10,10 +10,6 @@ export type Book = {
   author: string,
   /** ISBN */
   isbn: string,
-  /** 説明文 */
-  itemCaption: string,
-  /** 価格 */
-  itemPrice: number,
   /** 出版社 */
   publisherName: string,
   /** 発売日 */
@@ -22,14 +18,40 @@ export type Book = {
   title: string,
 };
 
-export const initBook = {
+export const initBook: Book = {
   username: '',
   seqno: 0,
   author: '',
   isbn: '',
-  itemCaption: '',
-  itemPrice: 0,
   publisherName: '',
   salesDate: '',
   title: '',
+};
+
+export type BookSummary = {
+  /** シーケンス番号 */
+  seqno: number,
+  /** 著者 */
+  author: string,
+  /** 出版社 */
+  publisherName: string,
+  /** タイトル */
+  title: string,
+}
+
+export const initBookSummary: BookSummary = {
+  seqno: 0,
+  author: '',
+  publisherName: '',
+  title: '',
+};
+
+export type BooksLastEvaluatedKey = {
+  username: string,
+  seqno: number,
+};
+
+export type GetBooksResponse = {
+  items: BookSummary[],
+  lastEvaluatedKey?: BooksLastEvaluatedKey
 };

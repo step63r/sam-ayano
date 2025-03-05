@@ -16,7 +16,12 @@ const docClient = DynamoDBDocumentClient.from(dynamodbClient);
 const createResponse = (statusCode, body) => {
     return {
         statusCode: statusCode,
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST",
+            "Access-Control-Allow-Headers": "Content-Type,X-CSRF-TOKEN",
+        },
     };
 };
 
@@ -68,8 +73,6 @@ export const lambdaHandler = async (event, context) => {
                 seqno: seqNo,
                 author: data.author,
                 isbn: data.isbn,
-                itemCaption: data.itemCaption,
-                itemPrice: data.itemPrice,
                 publisherName: data.publisherName,
                 salesDate: data.salesDate,
                 title: data.title

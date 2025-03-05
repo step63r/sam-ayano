@@ -13,6 +13,11 @@ Parameters:
 Globals:
   Function:
     Timeout: 3
+  Api:
+    Cors:
+      AllowOrigin: "'*'"
+      AllowMethods: "'POST'"
+      AllowHeaders: "'Content-Type,X-CSRF-TOKEN'"
 
 Resources:
   AyanoLambdaRole:
@@ -41,6 +46,12 @@ Resources:
                   - "dynamodb:UpdateItem"
                   - "dynamodb:PutItem"
                 Resource: "*"
+              - Effect: "Allow"
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "*"
   SearchRakutenBookFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -59,6 +70,21 @@ Resources:
       Environment:
         Variables:
           RAKUTEN_APPLICATION_ID: !Ref RAKUTENAPPLICATIONID
+  SearchOpenBdFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: search-openbd/
+      Handler: app.lambdaHandler
+      Runtime: nodejs22.x
+      Role: !GetAtt AyanoLambdaRole.Arn
+      Architectures:
+        - x86_64
+      Events:
+        SearchOpenBd:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /search-openbd
+            Method: post
   UpdateBooksFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -115,6 +141,12 @@ Outputs:
   SearchRakutenBookFunction:
     Description: "Search Rakuten Book Lambda Function ARN"
     Value: !GetAtt SearchRakutenBookFunction.Arn
+  SearchOpenBdApi:
+    Description: "API Gateway endpoint URL for Prod stage for Search OpenBD function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/search-openbd/"
+  SearchOpenBdFunction:
+    Description: "Search OpenBD Lambda Function ARN"
+    Value: !GetAtt SearchOpenBdFunction.Arn
   UpdateBooksApi:
     Description: "API Gateway endpoint URL for Prod stage for Update Books function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/update-books/"

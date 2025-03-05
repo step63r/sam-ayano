@@ -1,11 +1,6 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
+import axios from "axios";
 
-const dynamodbClient = new DynamoDBClient({
-    region: 'ap-northeast-1',
-});
-
-const docClient = DynamoDBDocumentClient.from(dynamodbClient);
+const baseUrl = "https://api.openbd.jp/v1/get";
 
 /**
  * レスポンスオブジェクトを生成する
@@ -27,24 +22,23 @@ const createResponse = (statusCode, body) => {
 
 export const lambdaHandler = async (event, context) => {
     console.log("event", event);
-    const { userName, seqno } = JSON.parse(event.body);
-
+    const { isbnjan } = JSON.parse(event.body);
+    console.log("isbnjan", isbnjan);
+    
     let response = {};
 
-    try {
-        const command = new GetCommand({
-            TableName: "Books",
-            Key: {
-                "username": userName,
-                "seqno": seqno
-            },
-        });
+    const url = `${baseUrl}?isbn=${isbnjan}`;
 
-        const getResult = await docClient.send(command);
-        console.log(getResult);
-        response = createResponse(200, {
-            items: getResult?.Item,
-        });
+    try {
+        await axios.get(url)
+            .then(r => {
+                console.log("response", r);
+                if (r.data.length == 1) {
+                    response = createResponse(200, r.data[0]);
+                } else {
+                    response = createResponse(500, { message: "検索結果が1件ではありませんでした。" });
+                }
+            });
     } catch (error) {
         console.log("error", error);
         response = createResponse(500, error);

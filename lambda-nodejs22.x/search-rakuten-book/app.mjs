@@ -11,7 +11,12 @@ const baseUrl = "https://app.rakuten.co.jp/services/api/BooksTotal/Search/201704
 const createResponse = (statusCode, body) => {
     return {
         statusCode: statusCode,
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST",
+            "Access-Control-Allow-Headers": "Content-Type,X-CSRF-TOKEN",
+        },
     };
 };
 
