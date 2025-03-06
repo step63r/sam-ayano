@@ -1,7 +1,9 @@
 import React, { useContext } from 'react';
-import { Authenticator } from '@aws-amplify/ui-react';
-import '@aws-amplify/ui-react/styles.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+import { translations, withAuthenticator } from '@aws-amplify/ui-react';
+import { I18n } from 'aws-amplify/utils';
+import '@aws-amplify/ui-react/styles.css';
 
 import { LoadingContext } from "./context/LoadingProvider";
 import { LoadingOverLay } from "./components/LoadingOverlay";
@@ -12,11 +14,14 @@ import Books from './components/Books';
 import BookDetail from './components/BookDetail';
 import UpdateComplete from './components/UpdateComplete';
 
+I18n.putVocabularies(translations);
+I18n.setLanguage('ja');
+
 const App: React.FC = () => {
   const { isLoadingOverlay } = useContext(LoadingContext);
 
   return (
-    <Authenticator>
+    <>
       <LoadingOverLay isLoadingOverlay={isLoadingOverlay} />
       <BrowserRouter>
         <Routes>
@@ -27,8 +32,8 @@ const App: React.FC = () => {
           <Route path='/updateComplete' element={<UpdateComplete />} />
         </Routes>
       </BrowserRouter>
-    </Authenticator>
+    </>
   )
 }
 
-export default App;
+export default withAuthenticator(App);

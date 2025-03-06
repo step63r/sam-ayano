@@ -4,8 +4,12 @@ import { Authenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import {
   Button,
-  Stack
+  Divider,
+  Grid2 as Grid,
+  Stack,
+  Typography
 } from '@mui/material';
+import { Add, LibraryBooks, Settings } from "@mui/icons-material";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -27,13 +31,28 @@ const Home: React.FC = () => {
 
   return (
     <Authenticator>
-      {({ signOut }) => (
-        <Stack spacing={2} direction='column' margin={4}>
-          <Button fullWidth variant="contained" onClick={handleReadBarcode}>書籍を登録する</Button>
-          <Button fullWidth variant="contained" onClick={handleBooks}>登録済み書籍を見る</Button>
-          <Button fullWidth variant="contained" onClick={handleSettings}>アカウント設定</Button>
-          <Button fullWidth variant="outlined" onClick={signOut}>ログアウト</Button>
-      </Stack>
+      {({ signOut, user }) => (
+        <Grid marginX={2}>
+          <Stack spacing={2} direction='column'>
+            <Stack direction='column'>
+              <Typography variant='h3' component='div' sx={{ paddingTop: 2 }}>
+                SBMS
+              </Typography>
+              <Typography variant='body1' component='div'>
+                Serverless Book Management System
+              </Typography>
+            </Stack>
+            <Divider />
+            <Typography variant='body1' component='div'>
+              {user?.signInDetails?.loginId} でログイン中です
+            </Typography>
+            <Divider />
+            <Button fullWidth size="large" variant="contained" onClick={handleReadBarcode} startIcon={<Add />}>書籍を登録する</Button>
+            <Button fullWidth size="large" variant="contained" onClick={handleBooks} startIcon={<LibraryBooks />}>登録済み書籍を見る</Button>
+            <Button fullWidth size="large" variant="contained" onClick={handleSettings} startIcon={<Settings />} disabled={true}>アカウント設定</Button>
+            <Button fullWidth size="large" variant="outlined" onClick={signOut}>サインアウト</Button>
+          </Stack>
+        </Grid>
       )}
     </Authenticator>
   );

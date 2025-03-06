@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Authenticator } from '@aws-amplify/ui-react';
 import { getCurrentUser, GetCurrentUserOutput } from "aws-amplify/auth";
 import { Book, initBook } from "../types/book";
 import axios from "axios";
@@ -11,6 +10,8 @@ import { LoadingContext } from "../context/LoadingProvider";
 
 import {
   Button,
+  Divider,
+  Grid2 as Grid,
   Stack,
   TextField,
   Typography
@@ -23,6 +24,7 @@ const BookDetail: React.FC = () => {
   const [user, setUser] = useState<GetCurrentUserOutput>();
   const [isbnjan, setIsbnjan] = useState<string>('');
   const [book, setBook] = useState<Book>(initBook);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
   const getCurrentUserAsync = async () => {
     const result = await getCurrentUser();
@@ -49,6 +51,14 @@ const BookDetail: React.FC = () => {
     getCurrentUserAsync();
     loadBookInfoAsync();
   }, []);
+
+  useEffect(() => {
+    if (book?.title) {
+      setIsButtonDisabled(false);
+    } else {
+      setIsButtonDisabled(true);
+    }
+  }, [book]);
 
   const searchOpenBd = async (isbnjan: string) => {
     const url = `${config.ApiEndpoint}/search-openbd`;
@@ -123,11 +133,12 @@ const BookDetail: React.FC = () => {
   };
 
   return (
-    <Authenticator>
-      <Stack spacing={2} direction='column' margin={4}>
-      <Typography variant='h3' component='div' gutterBottom>
-        書籍を登録
-      </Typography>
+    <Grid marginX={2}>
+      <Stack spacing={2} direction='column'>
+        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center', paddingTop: 2 }}>
+          書籍の情報を確認・修正してください
+        </Typography>
+        <Divider />
         <TextField required id='formTitle' label='タイトル'
           error={book.title === ''}
           value={book.title} onChange={handleChangeTitle}
@@ -141,19 +152,13 @@ const BookDetail: React.FC = () => {
         <TextField id='formSalesData' label='発売日'
           value={book.salesDate} onChange={handleChangeSalesDate}
         />
-        <TextField required id='formIsbn' label='ISBN'
-          error={book.isbn === ''}
+        <TextField id='formIsbn' label='ISBN'
           value={book.isbn} onChange={handleChangeIsbn}
-          slotProps={{
-            input: {
-              readOnly: true,
-            }
-          }}
         />
-        <Button fullWidth variant='contained' onClick={handleButtonClick}>登録する</Button>
+        <Button fullWidth variant='contained' disabled={isButtonDisabled} onClick={handleButtonClick}>登録する</Button>
         <Button fullWidth variant='outlined' onClick={() => navigate('/')}>ホームに戻る</Button>
       </Stack>
-    </Authenticator>
+    </Grid>
   );
 }
 
