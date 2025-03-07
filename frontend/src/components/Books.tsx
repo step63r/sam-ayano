@@ -24,12 +24,17 @@ import {
 
 const PAGE_SIZE = 10;
 
+type LastEvaluatedKeyType = {
+  username: string,
+  seqno: number,
+};
+
 const Books: React.FC = () => {
   const navigate = useNavigate();
   const { setIsLoadingOverlay } = useContext(LoadingContext);
   const [user, setUser] = useState<GetCurrentUserOutput>();
   const [books, setBooks] = useState<BookSummary[]>([]);
-  const [lastEvaluatedKey, setLastEvaluatedKey] = useState(0);
+  const [lastEvaluatedKey, setLastEvaluatedKey] = useState<LastEvaluatedKeyType>();
 
   const getCurrentUserAsync = async () => {
     const result = await getCurrentUser();
@@ -37,20 +42,20 @@ const Books: React.FC = () => {
     setUser(result);
   };
 
-  const getBooksAsync = async (pageSize: number, lastSeqNo: number = 0) => {
+  const getBooksAsync = async (pageSize: number, lastEvaluatedKey: LastEvaluatedKeyType | undefined = undefined) => {
     const url = `${config.ApiEndpoint}/get-books`;
     await axios.post(url, {
       userName: user?.signInDetails?.loginId ?? '',
       pageSize: pageSize,
-      lastEvaluatedKey: lastSeqNo
+      lastEvaluatedKey: lastEvaluatedKey
     })
       .then(response => {
         const res: GetBooksResponse = response.data;
         setBooks([...books, ...res.items]);
         if (res.lastEvaluatedKey) {
-          setLastEvaluatedKey(res.lastEvaluatedKey.seqno);
+          setLastEvaluatedKey(res.lastEvaluatedKey);
         } else {
-          setLastEvaluatedKey(-1);
+          setLastEvaluatedKey(undefined);
         }
       })
       .catch(error => {
@@ -85,10 +90,10 @@ const Books: React.FC = () => {
         <Divider />
         <Stack spacing={2} direction='column'>
           {books?.map((book) => (
-            <BookItem book={book} />
+            <BookItem key={book.seqno} book={book} />
           ))}
         </Stack>
-        {lastEvaluatedKey > 0 && (
+        {lastEvaluatedKey && (
           <Button fullWidth variant='contained' onClick={handleGetBooksAsync}>もっと見る</Button>
         )}
         <Button fullWidth variant='outlined' onClick={() => navigate('/')}>ホームに戻る</Button>

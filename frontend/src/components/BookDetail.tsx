@@ -26,6 +26,10 @@ const BookDetail: React.FC = () => {
   const [book, setBook] = useState<Book>(initBook);
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
+  useEffect(() => {
+  
+  }, [setIsLoadingOverlay]);
+  
   const getCurrentUserAsync = async () => {
     const result = await getCurrentUser();
     console.log(result);
@@ -43,13 +47,15 @@ const BookDetail: React.FC = () => {
     if (book) {
       setBook(book);
     }
-
-    setIsLoadingOverlay(false);
   };
 
   useEffect(() => {
+    setIsLoadingOverlay(true);
+
     getCurrentUserAsync();
     loadBookInfoAsync();
+
+    setIsLoadingOverlay(false);
   }, []);
 
   useEffect(() => {

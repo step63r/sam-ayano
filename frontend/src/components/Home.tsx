@@ -9,7 +9,7 @@ import {
   Stack,
   Typography
 } from '@mui/material';
-import { Add, LibraryBooks, Settings } from "@mui/icons-material";
+import { Add, Check, LibraryBooks, Settings } from "@mui/icons-material";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -17,6 +17,15 @@ const Home: React.FC = () => {
   const handleReadBarcode = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
     navigate('/readBarcode');
+  };
+
+  const handleCheckExists = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+    navigate('/readBarcode', {
+      state: {
+        checkExists: true,
+      },
+    });
   };
 
   const handleBooks = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -48,6 +57,7 @@ const Home: React.FC = () => {
             </Typography>
             <Divider />
             <Button fullWidth size="large" variant="contained" onClick={handleReadBarcode} startIcon={<Add />}>書籍を登録する</Button>
+            <Button fullWidth size="large" variant="contained" onClick={handleCheckExists} startIcon={<Check />}>所有済みチェック</Button>
             <Button fullWidth size="large" variant="contained" onClick={handleBooks} startIcon={<LibraryBooks />}>登録済み書籍を見る</Button>
             <Button fullWidth size="large" variant="contained" onClick={handleSettings} startIcon={<Settings />} disabled={true}>アカウント設定</Button>
             <Button fullWidth size="large" variant="outlined" onClick={signOut}>サインアウト</Button>
