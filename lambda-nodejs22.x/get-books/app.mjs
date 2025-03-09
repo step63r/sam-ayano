@@ -27,29 +27,46 @@ const createResponse = (statusCode, body) => {
 
 export const lambdaHandler = async (event, context) => {
     console.log("event", event);
-    const { userName, pageSize, lastEvaluatedKey } = JSON.parse(event.body);
+    const { userName, pageSize, lastEvaluatedKey, ...params } = JSON.parse(event.body);
 
     let response = {};
-    let startKey = lastEvaluatedKey ?? 0;
+    let command;
 
     try {
-        const command = new QueryCommand({
-            TableName: "Books",
-            KeyConditionExpression: "#un = :un",
-            ExpressionAttributeNames: {
-                "#un": "username"
-            },
-            ExpressionAttributeValues: {
-                ":un": userName
-            },
-            ProjectionExpression: "seqno, author, publisherName, title",
-            ExclusiveStartKey: {
-                username: userName,
-                seqno: startKey,
-            },
-            Limit: pageSize,
-            ConsistentRead: true,
-        });
+        if (params.isbn) {
+            command = new QueryCommand({
+                TableName: "Books",
+                IndexName: "isbn-index",
+                KeyConditionExpression: "#un = :un and #isbn = :isbn",
+                ExpressionAttributeNames: {
+                    "#un": "username",
+                    "#isbn": "isbn",
+                },
+                ExpressionAttributeValues: {
+                    ":un": userName,
+                    ":isbn": params.isbn,
+                },
+                ProjectionExpression: "seqno, author, publisherName, title",
+                ExclusiveStartKey: lastEvaluatedKey,
+                Limit: pageSize,
+                ConsistentRead: true,
+            });
+        } else {
+            command = new QueryCommand({
+                TableName: "Books",
+                KeyConditionExpression: "#un = :un",
+                ExpressionAttributeNames: {
+                    "#un": "username"
+                },
+                ExpressionAttributeValues: {
+                    ":un": userName
+                },
+                ProjectionExpression: "seqno, author, publisherName, title",
+                ExclusiveStartKey: lastEvaluatedKey,
+                Limit: pageSize,
+                ConsistentRead: true,
+            });
+        }
 
         const queryResult = await docClient.send(command);
         console.log(queryResult);
