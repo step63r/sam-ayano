@@ -60,7 +60,7 @@ const ReadBarcode: React.FC = () => {
     if (location.state?.checkExists) {
       setIsCheckExists(true);
     }
-  }, []);
+  }, [location.state?.checkExists]);
 
   useEffect(() => {
 
