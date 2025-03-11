@@ -80,6 +80,7 @@ const BookDetail: React.FC = () => {
           publisherName: item.summary.publisher,
           salesDate: item.summary.pubdate,
           title: item.summary.title,
+          titleKana: item.onix.DescriptiveDetail.TitleDetail.TitleElement.TitleText.collationkey,
         }
 
         setBook(result);
@@ -98,7 +99,8 @@ const BookDetail: React.FC = () => {
         isbn: book.isbn,
         publisherName: book.publisherName,
         salesDate: book.salesDate,
-        title: book.title
+        title: book.title,
+        titleKana: book.titleKana,
       }
     })
       .then(response => {
@@ -111,6 +113,10 @@ const BookDetail: React.FC = () => {
 
   const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBook({ ...book, title: e.target.value });
+  };
+
+  const handleChangeTitleKana = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setBook({ ...book, titleKana: e.target.value });
   };
 
   const handleChangeAuthor = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,6 +154,9 @@ const BookDetail: React.FC = () => {
         <TextField required id='formTitle' label='タイトル'
           error={book.title === ''}
           value={book.title} onChange={handleChangeTitle}
+        />
+        <TextField id='formTitleKana' label='タイトル（カナ）'
+          value={book.titleKana} onChange={handleChangeTitleKana}
         />
         <TextField id='formAuthor' label='著者'
           value={book.author} onChange={handleChangeAuthor}

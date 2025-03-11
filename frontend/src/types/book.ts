@@ -16,6 +16,8 @@ export type Book = {
   salesDate: string,
   /** タイトル */
   title: string,
+  //** タイトル（カナ） */
+  titleKana: string,
 };
 
 export const initBook: Book = {
@@ -26,6 +28,7 @@ export const initBook: Book = {
   publisherName: '',
   salesDate: '',
   title: '',
+  titleKana: '',
 };
 
 export type BookSummary = {

@@ -23,6 +23,11 @@ import {
   InputAdornment,
   TextField,
   IconButton,
+  FormControl,
+  InputLabel,
+  Select,
+  SelectChangeEvent,
+  MenuItem,
 } from "@mui/material";
 
 import {
@@ -41,6 +46,8 @@ type GetBooksAsyncParam = {
   pageSize: number,
   lastEvaluatedKey: LastEvaluatedKeyType | undefined,
   keyword: string,
+  sortKeyId: number,
+  desc: boolean,
 };
 
 type GetBooksAsyncResponse = {
@@ -56,6 +63,8 @@ const Books: React.FC = () => {
   const [lastEvaluatedKey, setLastEvaluatedKey] = useState<LastEvaluatedKeyType>();
   const [keyword, setKeyword] = useState("");
   const [debouncedKeyword] = useDebounce(keyword, 500);
+  const [sortKeyId, setSortKeyId] = useState(0);
+  const [isDesc, setIsDesc] = useState(false);
 
   const getBooksAsync = useCallback(async (param: GetBooksAsyncParam): Promise<GetBooksAsyncResponse | undefined> => {
     try {
@@ -64,7 +73,9 @@ const Books: React.FC = () => {
         userName: user?.signInDetails?.loginId ?? '',
         pageSize: param.pageSize,
         lastEvaluatedKey: param.lastEvaluatedKey,
-        keyword: param.keyword
+        keyword: param.keyword,
+        sortKeyId: param.sortKeyId,
+        desc: param.desc,
       });
 
       if (response.data) {
@@ -100,7 +111,9 @@ const Books: React.FC = () => {
         const result = await getBooksAsync({
           pageSize: PAGE_SIZE,
           lastEvaluatedKey: undefined,
-          keyword: debouncedKeyword
+          keyword: debouncedKeyword,
+          sortKeyId: sortKeyId,
+          desc: isDesc,
         });
 
         console.log("getBooksAsync result", result);
@@ -117,7 +130,7 @@ const Books: React.FC = () => {
     })();
 
     console.log("useEffect[user, debouncedKeyword, getBooksAsync] end");
-  }, [user, debouncedKeyword, getBooksAsync]);
+  }, [user, debouncedKeyword, getBooksAsync, isDesc, sortKeyId]);
 
   const handleLoadMore = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     console.log("handleLoadMore start");
@@ -125,7 +138,9 @@ const Books: React.FC = () => {
     const result = await getBooksAsync({
       pageSize: PAGE_SIZE,
       lastEvaluatedKey: lastEvaluatedKey,
-      keyword: keyword
+      keyword: keyword,
+      sortKeyId: sortKeyId,
+      desc: isDesc,
     });
 
     if (result) {
@@ -138,6 +153,42 @@ const Books: React.FC = () => {
     }
 
     console.log("handleLoadMore end");
+  };
+
+  const handleChangeSortKey = async (e: SelectChangeEvent) => {
+    console.log("handleChangeSortKey start");
+
+    if (user) {
+      const val = parseInt(e.target.value);
+
+      const newSortKeyId = Math.floor(val / 10);
+      const newIsDesc = val % 10 === 1 ? true : false;
+      setSortKeyId(newSortKeyId);
+      setIsDesc(newIsDesc);
+
+      setBooks([]);
+
+      const result = await getBooksAsync({
+        pageSize: PAGE_SIZE,
+        lastEvaluatedKey: undefined,
+        keyword: debouncedKeyword,
+        sortKeyId: newSortKeyId,
+        desc: newIsDesc,
+      });
+
+      console.log("getBooksAsync result", result);
+
+      if (result) {
+        setBooks([...result.books]);
+        if (result.lastEvaluatedKey) {
+          setLastEvaluatedKey(result.lastEvaluatedKey);
+        } else {
+          setLastEvaluatedKey(undefined);
+        }
+      }
+    }
+
+    console.log("handleChangeSortKey end");
   };
 
   return (
@@ -170,6 +221,21 @@ const Books: React.FC = () => {
             }
           }}
         />
+        <FormControl fullWidth>
+          <InputLabel>並び替え</InputLabel>
+          <Select
+            label="並び替え"
+            defaultValue="0"
+            onChange={handleChangeSortKey}
+          >
+            <MenuItem value={0}>登録順（古い順）</MenuItem>
+            <MenuItem value={1}>登録順（新しい順）</MenuItem>
+            <MenuItem value={20}>タイトル順（昇順）</MenuItem>
+            <MenuItem value={21}>タイトル順（降順）</MenuItem>
+            <MenuItem value={30}>発売日順（古い順）</MenuItem>
+            <MenuItem value={31}>発売日順（新しい順）</MenuItem>
+          </Select>
+        </FormControl>
         <Stack spacing={2} direction='column'>
           {books?.map((book) => (
             <BookItem key={book.seqno} book={book} />

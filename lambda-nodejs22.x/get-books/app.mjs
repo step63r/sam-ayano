@@ -50,6 +50,25 @@ export const lambdaHandler = async (event, context) => {
             commandInput.ExpressionAttributeValues[":isbn"] = params.isbn;
         }
 
+        if (params.sortKeyId) {
+            // sortKeyId
+            //  1: title
+            //  2: titleKana
+            //  3: salesDate
+            if (params.sortKeyId === 1) {
+                commandInput.IndexName = "title-index";
+            } else if (params.sortKeyId === 2) {
+                commandInput.IndexName = "titleKana-index";
+            } else if (params.sortKeyId === 3) {
+                commandInput.IndexName = "salesDate-index";
+            }
+        }
+
+        if (params.desc) {
+            // 降順ソート
+            commandInput.ScanIndexForward = false;
+        }
+
         if (params.keyword) {
             commandInput.FilterExpression = "contains(#author, :keyword) or contains(#publisherName, :keyword) or contains(#title, :keyword)";
             commandInput.ExpressionAttributeNames["#author"] = "author";

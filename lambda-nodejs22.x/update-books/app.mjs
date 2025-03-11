@@ -75,7 +75,8 @@ export const lambdaHandler = async (event, context) => {
                 isbn: data.isbn,
                 publisherName: data.publisherName,
                 salesDate: data.salesDate,
-                title: data.title
+                title: data.title,
+                titleKana: data.titleKana,
             }
         });
         const putResult = await docClient.send(command);
