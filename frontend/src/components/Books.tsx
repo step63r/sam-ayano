@@ -238,7 +238,7 @@ const Books: React.FC = () => {
         </FormControl>
         <Stack spacing={2} direction='column'>
           {books?.map((book) => (
-            <BookItem key={book.seqno} book={book} />
+            <BookItem key={book.seqno} book={book} onClick={() => navigate(`/books/${book.seqno}`)} />
           ))}
         </Stack>
         {lastEvaluatedKey && (

@@ -13,6 +13,7 @@ import ReadBarcode from './components/ReadBarcode';
 import Books from './components/Books';
 import BookDetail from './components/BookDetail';
 import UpdateComplete from './components/UpdateComplete';
+import UpdateBook from './components/UpdateBook';
 
 I18n.putVocabularies(translations);
 I18n.setLanguage('ja');
@@ -29,6 +30,7 @@ const App: React.FC = () => {
           <Route path='/readBarcode' element={<ReadBarcode />} />
           <Route path='/book' element={<BookDetail />} />
           <Route path='/books' element={<Books />} />
+          <Route path='/books/:seqno' element={<UpdateBook />} />
           <Route path='/updateComplete' element={<UpdateComplete />} />
         </Routes>
       </BrowserRouter>

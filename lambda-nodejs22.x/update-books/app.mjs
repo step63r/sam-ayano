@@ -61,26 +61,55 @@ export const lambdaHandler = async (event, context) => {
     let response = {};
 
     try {
-        // シーケンス番号の取得
-        const seqNo = await getNextSeq("Books", userName);
-        console.log("next seq => ", seqNo);
+        if (data.seqno) {
+            // DynamoDBへの登録
+            const command = new UpdateCommand({
+                TableName: "Books",
+                Key: {
+                    username: userName,
+                    seqno: data.seqno,
+                },
+                UpdateExpression: "set #at = :at, #pn = :pn, #sd = :sd, #t = :t, #tk = :tk",
+                ExpressionAttributeNames: {
+                    "#at": "author",
+                    "#pn": "publisherName",
+                    "#sd": "salesDate",
+                    "#t": "title",
+                    "#tk": "titleKana",
+                },
+                ExpressionAttributeValues: {
+                    ":at": data.author,
+                    ":pn": data.publisherName,
+                    ":sd": data.salesDate,
+                    ":t": data.title,
+                    ":tk": data.titleKana,
+                }
+            });
+            const updateResult = await docClient.send(command);
+            console.log(updateResult);
+        } else {
+            // シーケンス番号の取得
+            const seqNo = await getNextSeq("Books", userName);
+            console.log("next seq => ", seqNo);
 
-        // DynamoDBへの登録
-        const command = new PutCommand({
-            TableName: "Books",
-            Item: {
-                username: userName,
-                seqno: seqNo,
-                author: data.author,
-                isbn: data.isbn,
-                publisherName: data.publisherName,
-                salesDate: data.salesDate,
-                title: data.title,
-                titleKana: data.titleKana,
-            }
-        });
-        const putResult = await docClient.send(command);
-        console.log(putResult);
+            // DynamoDBへの登録
+            const command = new PutCommand({
+                TableName: "Books",
+                Item: {
+                    username: userName,
+                    seqno: seqNo,
+                    author: data.author,
+                    isbn: data.isbn,
+                    publisherName: data.publisherName,
+                    salesDate: data.salesDate,
+                    title: data.title,
+                    titleKana: data.titleKana,
+                }
+            });
+            const putResult = await docClient.send(command);
+            console.log(putResult);
+        }
+        
         response = createResponse(200, { message: "OK" });
     } catch (error) {
         console.log("error", error);

@@ -89,16 +89,8 @@ export const lambdaHandler = async (event, context) => {
             const queryResult = await docClient.send(new QueryCommand(commandInput));
             console.log("query result", queryResult);
 
-            // それまでの取得件数 + 今回の取得件数 > pageSize となる場合、
-            // pazeSize件になるように今回の件数をスライスする
-            if (currentLength + queryResult?.Items.length > pageSize) {
-                const sliceItems = queryResult?.Items.slice(0, pageSize - currentLength);
-                items.push(...sliceItems);
-                currentLength += sliceItems.length;
-            } else {
-                items.push(...queryResult?.Items);
-                currentLength += queryResult?.Items.length;
-            }
+            items.push(...queryResult?.Items);
+            currentLength += queryResult?.Items.length;
 
             // LastEvaluatedKeyがあれば次のコマンドに入れ、
             // なければcurrentLastEvaluatedKeyを未セットにしてループを抜ける
@@ -108,6 +100,13 @@ export const lambdaHandler = async (event, context) => {
                 currentLastEvaluatedKey = undefined;
                 break;
             }
+        }
+
+        // 取得結果がpageSizeより多い場合はスライスする
+        if (items.length > pageSize) {
+            items = items.slice(0, pageSize);
+            currentLastEvaluatedKey.username = userName;
+            currentLastEvaluatedKey.seqno = items[items.length - 1].seqno;
         }
 
         response = createResponse(200, {
