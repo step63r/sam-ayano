@@ -9,6 +9,7 @@ import App from './App';
 import { Amplify } from 'aws-amplify';
 
 import { LoadingProvider } from './context/LoadingProvider';
+import { Authenticator } from '@aws-amplify/ui-react';
 
 import { CssBaseline } from '@mui/material';
 
@@ -31,9 +32,11 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <CssBaseline />
-    <LoadingProvider>
-      <App />
-    </LoadingProvider>
+    <Authenticator.Provider>
+      <LoadingProvider>
+        <App />
+      </LoadingProvider>
+    </Authenticator.Provider>
   </React.StrictMode>
 );
 

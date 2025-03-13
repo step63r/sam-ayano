@@ -19,10 +19,12 @@
     "@types/react-dom": "^19.0.4",
     "@yudiel/react-qr-scanner": "^2.1.0",
     "aws-amplify": "^6.13.2",
+    "axios": "^1.8.3",
     "framer-motion": "^12.4.10",
     "oidc-client-ts": "^3.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-modal": "^3.16.3",
     "react-oidc-context": "^3.2.0",
     "react-router-dom": "^7.2.0",
     "react-scripts": "5.0.1",
@@ -53,5 +55,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/react-modal": "^3.16.3"
   }
 }

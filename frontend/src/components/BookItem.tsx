@@ -19,7 +19,7 @@ type BookItemProps = {
   onClick: React.MouseEventHandler<HTMLButtonElement>;
 };
 
-const BookItem: React.FC<BookItemProps> = ({ book, onClick }: BookItemProps) => {
+const BookItem: React.FC<BookItemProps> = ({ book, onClick }) => {
   return (
     <Card>
       <CardActionArea onClick={onClick}>

@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Authenticator } from '@aws-amplify/ui-react';
+import { useAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import {
   Button,
@@ -11,8 +11,13 @@ import {
 } from '@mui/material';
 import { Add, Check, LibraryBooks, Settings } from "@mui/icons-material";
 
+/**
+ * Homeコンポーネント
+ * @returns コンポーネント
+ */
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuthenticator((context) => [context.user]);
 
   const handleReadBarcode = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
@@ -39,32 +44,28 @@ const Home: React.FC = () => {
   };
 
   return (
-    <Authenticator>
-      {({ signOut, user }) => (
-        <Grid marginX={2}>
-          <Stack spacing={2} direction='column'>
-            <Stack direction='column'>
-              <Typography variant='h3' component='div' sx={{ paddingTop: 2 }}>
-                SBMS
-              </Typography>
-              <Typography variant='body1' component='div'>
-                Serverless Book Management System
-              </Typography>
-            </Stack>
-            <Divider />
-            <Typography variant='body1' component='div'>
-              {user?.signInDetails?.loginId} でログイン中です
-            </Typography>
-            <Divider />
-            <Button fullWidth size="large" variant="contained" onClick={handleReadBarcode} startIcon={<Add />}>書籍を登録する</Button>
-            <Button fullWidth size="large" variant="contained" onClick={handleCheckExists} startIcon={<Check />}>所有済みチェック</Button>
-            <Button fullWidth size="large" variant="contained" onClick={handleBooks} startIcon={<LibraryBooks />}>登録済み書籍を見る</Button>
-            <Button fullWidth size="large" variant="contained" onClick={handleSettings} startIcon={<Settings />} disabled={true}>アカウント設定</Button>
-            <Button fullWidth size="large" variant="outlined" onClick={signOut}>サインアウト</Button>
-          </Stack>
-        </Grid>
-      )}
-    </Authenticator>
+    <Grid marginX={2}>
+      <Stack spacing={2} direction='column'>
+        <Stack direction='column'>
+          <Typography variant='h3' component='div' sx={{ paddingTop: 2 }}>
+            SBMS
+          </Typography>
+          <Typography variant='body1' component='div'>
+            Serverless Book Management System
+          </Typography>
+        </Stack>
+        <Divider />
+        <Typography variant='body1' component='div'>
+          {user?.signInDetails?.loginId} でログイン中です
+        </Typography>
+        <Divider />
+        <Button fullWidth size="large" variant="contained" onClick={handleReadBarcode} startIcon={<Add />}>書籍を登録する</Button>
+        <Button fullWidth size="large" variant="contained" onClick={handleCheckExists} startIcon={<Check />}>所有済みチェック</Button>
+        <Button fullWidth size="large" variant="contained" onClick={handleBooks} startIcon={<LibraryBooks />}>登録済み書籍を見る</Button>
+        <Button fullWidth size="large" variant="contained" onClick={handleSettings} startIcon={<Settings />} disabled={true}>アカウント設定</Button>
+        <Button fullWidth size="large" variant="outlined" onClick={signOut}>サインアウト</Button>
+      </Stack>
+    </Grid>
   );
 }
 

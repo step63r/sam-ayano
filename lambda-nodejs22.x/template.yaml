@@ -130,6 +130,21 @@ Resources:
           Properties:
             Path: /get-book
             Method: post
+  GetBooksCountFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: get-books-count/
+      Handler: app.lambdaHandler
+      Runtime: nodejs22.x
+      Role: !GetAtt AyanoLambdaRole.Arn
+      Architectures:
+        - x86_64
+      Events:
+        GetBook:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /get-books-count
+            Method: post
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
@@ -165,3 +180,6 @@ Outputs:
   GetBookFunction:
     Description: "Get Book Lambda Function ARN"
     Value: !GetAtt GetBookFunction.Arn
+  GetBooksCountFunction:
+    Description: "Get Books Count Lambda Function ARN"
+    Value: !GetAtt GetBooksCountFunction.Arn

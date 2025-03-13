@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDebounce } from "use-debounce";
 import { AuthUser, getCurrentUser } from "aws-amplify/auth";
 import axios from "axios";
+import MessageModal from "./MessageModal";
 
 import config from "../config.json";
 
@@ -65,6 +66,10 @@ const Books: React.FC = () => {
   const [debouncedKeyword] = useDebounce(keyword, 500);
   const [sortKeyId, setSortKeyId] = useState(0);
   const [isDesc, setIsDesc] = useState(false);
+  const [booksCount, setBooksCount] = useState(0);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [iconType, setIconType] = useState<"none" | "info" | "warn" | "error">("none");
+  const [modalMessage, setModalMessage] = useState("");
 
   const getBooksAsync = useCallback(async (param: GetBooksAsyncParam): Promise<GetBooksAsyncResponse | undefined> => {
     try {
@@ -86,6 +91,27 @@ const Books: React.FC = () => {
       }
     } catch (error) {
       console.log("getBooksAsync ERROR!", error);
+      setIconType("error");
+      setModalMessage("エラーが発生しました");
+      setModalIsOpen(true);
+    }
+  }, [user?.signInDetails?.loginId]);
+
+  const getBooksCountAsync = useCallback(async (): Promise<number| undefined> => {
+    try {
+      const url = `${config.ApiEndpoint}/get-books-count`;
+      const response = await axios.post(url, {
+        userName: user?.signInDetails?.loginId ?? '',
+      });
+
+      if (response.data) {
+        return response.data.count;
+      }
+    } catch (error) {
+      console.log("getBooksCountAsync ERROR!", error);
+      setIconType("error");
+      setModalMessage("エラーが発生しました");
+      setModalIsOpen(true);
     }
   }, [user?.signInDetails?.loginId]);
 
@@ -131,6 +157,24 @@ const Books: React.FC = () => {
 
     console.log("useEffect[user, debouncedKeyword, getBooksAsync] end");
   }, [user, debouncedKeyword, getBooksAsync, isDesc, sortKeyId]);
+
+  useEffect(() => {
+    console.log("useEffect[user] start");
+
+    (async () => {
+      if (user) {
+        const result = await getBooksCountAsync();
+
+        console.log("getBooksCountAsync result", result);
+
+        if (result) {
+          setBooksCount(result);
+        }
+      }
+    })();
+
+    console.log("useEffect[user] end");
+  }, [user, getBooksCountAsync]);
 
   const handleLoadMore = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     console.log("handleLoadMore start");
@@ -191,6 +235,14 @@ const Books: React.FC = () => {
     console.log("handleChangeSortKey end");
   };
 
+  const handleCloseModal = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setModalIsOpen(false);
+    setIconType("none");
+    setModalMessage("");
+    navigate('/');
+  };
+
   return (
     <Grid marginX={2}>
       <Stack spacing={2} direction='column'>
@@ -236,6 +288,9 @@ const Books: React.FC = () => {
             <MenuItem value={31}>発売日順（新しい順）</MenuItem>
           </Select>
         </FormControl>
+        <Typography variant='caption' component='div'>
+          合計 {booksCount.toLocaleString()} 冊の書籍
+        </Typography>
         <Stack spacing={2} direction='column'>
           {books?.map((book) => (
             <BookItem key={book.seqno} book={book} onClick={() => navigate(`/books/${book.seqno}`)} />
@@ -251,6 +306,12 @@ const Books: React.FC = () => {
         )}
         <Button fullWidth variant='outlined' onClick={() => navigate('/')}>ホームに戻る</Button>
       </Stack>
+      <MessageModal
+        iconType={iconType}
+        isOpen={modalIsOpen}
+        message={modalMessage}
+        handleClose={handleCloseModal}
+      />
     </Grid>
   );
 }

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { getCurrentUser, GetCurrentUserOutput } from "aws-amplify/auth";
 import { Book, initBook } from "../types/book";
 import axios from "axios";
+import MessageModal from "./MessageModal";
 
 import config from "../config.json";
 
@@ -24,6 +25,9 @@ const UpdateBook: React.FC = () => {
   const [user, setUser] = useState<GetCurrentUserOutput>();
   const [book, setBook] = useState<Book>(initBook);
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [iconType, setIconType] = useState<"none" | "info" | "warn" | "error">("none");
+  const [modalMessage, setModalMessage] = useState("");
 
   const getBookAsync = useCallback(async (seqno: number): Promise<Book | undefined> => {
     try {
@@ -37,6 +41,9 @@ const UpdateBook: React.FC = () => {
 
     } catch (error) {
       console.log("getBookAsync ERROR!", error);
+      setIconType("error");
+      setModalMessage("エラーが発生しました");
+      setModalIsOpen(true);
     }
   }, [user?.signInDetails?.loginId]);
 
@@ -60,6 +67,9 @@ const UpdateBook: React.FC = () => {
 
     } catch (error) {
       console.log("updateBooksAsync ERROR!", error);
+      setIconType("error");
+      setModalMessage("エラーが発生しました");
+      setModalIsOpen(true);
       return false;
     }
   }, [book, user]);
@@ -133,6 +143,14 @@ const UpdateBook: React.FC = () => {
     navigate('/updateComplete');
   };
 
+  const handleCloseModal = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setModalIsOpen(false);
+    setIconType("none");
+    setModalMessage("");
+    navigate('/');
+  };
+
   return (
     <Grid marginX={2}>
       <Stack spacing={2} direction='column'>
@@ -163,6 +181,12 @@ const UpdateBook: React.FC = () => {
         <Button fullWidth variant='contained' disabled={isButtonDisabled} onClick={handleButtonClick}>登録する</Button>
         <Button fullWidth variant='outlined' onClick={() => navigate('/books')}>一覧に戻る</Button>
       </Stack>
+      <MessageModal
+        iconType={iconType}
+        isOpen={modalIsOpen}
+        message={modalMessage}
+        handleClose={handleCloseModal}
+      />
     </Grid>
   );
 };

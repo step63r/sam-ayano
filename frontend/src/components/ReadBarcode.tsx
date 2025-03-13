@@ -4,15 +4,12 @@ import { getCurrentUser, GetCurrentUserOutput } from "aws-amplify/auth";
 import { Scanner, IDetectedBarcode } from '@yudiel/react-qr-scanner';
 import { LoadingContext } from "../context/LoadingProvider";
 import axios from "axios";
+import MessageModal from "./MessageModal";
 
 import config from "../config.json";
 
 import {
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
   Divider,
   Grid2 as Grid,
   Stack,
@@ -26,8 +23,9 @@ const ReadBarcode: React.FC = () => {
   const { setIsLoadingOverlay } = useContext(LoadingContext);
   const [user, setUser] = useState<GetCurrentUserOutput>();
   const [isCheckExists, setIsCheckExists] = useState(false);
-  const [dialogMessage, setDialogMessage] = useState("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [iconType, setIconType] = useState<"none" | "info" | "warn" | "error">("none");
+  const [modalMessage, setModalMessage] = useState("");
 
   const getCurrentUserAsync = async () => {
       const result = await getCurrentUser();
@@ -49,6 +47,9 @@ const ReadBarcode: React.FC = () => {
       })
       .catch(error => {
         console.log(error);
+        setIconType("error");
+        setModalMessage("エラーが発生しました");
+        setModalIsOpen(true);
       });
     
     return Promise.resolve(ret);
@@ -76,11 +77,13 @@ const ReadBarcode: React.FC = () => {
             const ret = await getBooksAsync(item.rawValue);
             setIsLoadingOverlay(false);
             if (ret!.items.length > 0) {
-              setDialogMessage("この書籍を1冊以上所有しています");
+              setIconType("info");
+              setModalMessage("この書籍を1冊以上所有しています");
             } else {
-              setDialogMessage("この書籍を1冊も所有していません");
+              setIconType("info");
+              setModalMessage("この書籍を1冊も所有していません");
             }
-            setIsDialogOpen(true);
+            setModalIsOpen(true);
 
           } else {
             navigate('/book', {
@@ -94,8 +97,11 @@ const ReadBarcode: React.FC = () => {
     }
   };
 
-  const handleDialogConfirm = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    setIsDialogOpen(false);
+  const handleCloseModal = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setModalIsOpen(false);
+    setIconType("none");
+    setModalMessage("");
     navigate('/');
   };
 
@@ -124,17 +130,13 @@ const ReadBarcode: React.FC = () => {
             </Button>
           )}
         </Stack>
+        <MessageModal
+          iconType={iconType}
+          isOpen={modalIsOpen}
+          message={modalMessage}
+          handleClose={handleCloseModal}
+        />
       </Grid>
-      <Dialog open={isDialogOpen}>
-        <DialogContent>
-          <DialogContentText>
-            {dialogMessage}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDialogConfirm}>確認しました</Button>
-        </DialogActions>
-      </Dialog>
     </>
   );
 }

@@ -18,6 +18,10 @@ import UpdateBook from './components/UpdateBook';
 I18n.putVocabularies(translations);
 I18n.setLanguage('ja');
 
+/**
+ * Appコンポーネント
+ * @returns コンポーネント
+ */
 const App: React.FC = () => {
   const { isLoadingOverlay } = useContext(LoadingContext);
 
