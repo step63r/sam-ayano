@@ -14,11 +14,21 @@ import {
   PersonRounded
 } from "@mui/icons-material";
 
+/**
+ * BookItemコンポーネントのプロパティ
+ */
 type BookItemProps = {
+  /** 書籍サマリ */
   book: BookSummary;
+  /** クリックイベント */
   onClick: React.MouseEventHandler<HTMLButtonElement>;
 };
 
+/**
+ * 書籍情報一覧のアイテムコンポーネント
+ * @param param0 プロパティ
+ * @returns コンポーネント
+ */
 const BookItem: React.FC<BookItemProps> = ({ book, onClick }) => {
   return (
     <Card>

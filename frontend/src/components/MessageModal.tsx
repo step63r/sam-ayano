@@ -15,13 +15,23 @@ import {
 
 Modal.setAppElement("#root");
 
+/**
+ * MessageModalコンポーネントのプロパティ
+ */
 type MessageModalProps = {
+  /** 表示フラグ */
   isOpen: boolean
+  /** アイコン種別 */
   iconType: "none" | "info" | "warn" | "error"
+  /** メッセージ */
   message: string
+  /** 閉じるイベント */
   handleClose: React.MouseEventHandler<HTMLButtonElement>;
 };
 
+/**
+ * 独自のモーダルスタイル定義
+ */
 const modalStyles: Modal.Styles = {
   content: {
     position: "absolute",
@@ -38,6 +48,11 @@ const modalStyles: Modal.Styles = {
   }
 };
 
+/**
+ * メッセージ用モーダル
+ * @param param0 プロパティ
+ * @returns コンポーネント
+ */
 const MessageModal: React.FC<MessageModalProps> = ({ isOpen, iconType, message, handleClose }) => {
   return (
     <Modal

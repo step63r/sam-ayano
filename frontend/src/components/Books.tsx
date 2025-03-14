@@ -36,26 +36,49 @@ import {
   Search,
 } from "@mui/icons-material";
 
+/** 一度にロードするデータ件数 */
 const PAGE_SIZE = 10;
 
+/**
+ * LastEvaluatedKey
+ */
 type LastEvaluatedKeyType = {
+  /** ユーザー名 */
   username: string,
+  /** シーケンス番号 */
   seqno: number,
 };
 
+/**
+ * 書籍一覧取得APIのリクエストパラメータ
+ */
 type GetBooksAsyncParam = {
+  /** ページサイズ */
   pageSize: number,
-  lastEvaluatedKey: LastEvaluatedKeyType | undefined,
+  /** LastEvaluatedKey */
+  lastEvaluatedKey?: LastEvaluatedKeyType
+  /** 検索キーワード */
   keyword: string,
+  /** ソート順 */
   sortKeyId: number,
+  /** 降順ソートフラグ */
   desc: boolean,
 };
 
+/**
+ * 書籍一覧取得APIのレスポンスパラメータ
+ */
 type GetBooksAsyncResponse = {
+  /** 書籍サマリ */
   books: BookSummary[],
-  lastEvaluatedKey: LastEvaluatedKeyType | undefined
+  /** LastEvaluatedKey */
+  lastEvaluatedKey?: LastEvaluatedKeyType,
 };
 
+/**
+ * 書籍一覧画面
+ * @returns コンポーネント
+ */
 const Books: React.FC = () => {
   const navigate = useNavigate();
   const { setIsLoadingOverlay } = useContext(LoadingContext);
@@ -71,6 +94,9 @@ const Books: React.FC = () => {
   const [iconType, setIconType] = useState<"none" | "info" | "warn" | "error">("none");
   const [modalMessage, setModalMessage] = useState("");
 
+  /**
+   * 書籍情報を取得する
+   */
   const getBooksAsync = useCallback(async (param: GetBooksAsyncParam): Promise<GetBooksAsyncResponse | undefined> => {
     try {
       const url = `${config.ApiEndpoint}/get-books`;
@@ -95,8 +121,11 @@ const Books: React.FC = () => {
       setModalMessage("エラーが発生しました");
       setModalIsOpen(true);
     }
-  }, [user?.signInDetails?.loginId]);
+  }, [user]);
 
+  /**
+   * 書籍件数を取得する
+   */
   const getBooksCountAsync = useCallback(async (): Promise<number| undefined> => {
     try {
       const url = `${config.ApiEndpoint}/get-books-count`;
@@ -113,8 +142,11 @@ const Books: React.FC = () => {
       setModalMessage("エラーが発生しました");
       setModalIsOpen(true);
     }
-  }, [user?.signInDetails?.loginId]);
+  }, [user]);
 
+  /**
+   * useEffect
+   */
   useEffect(() => {
     console.log("useEffect[] start");
 
@@ -128,10 +160,15 @@ const Books: React.FC = () => {
     console.log("useEffect[] end");
   }, []);
 
+  /**
+   * useEffect
+   */
   useEffect(() => {
     console.log("useEffect[user, debouncedKeyword, getBooksAsync] start");
 
     (async () => {
+      setIsLoadingOverlay(true);
+
       if (user) {
         setBooks([]);
         const result = await getBooksAsync({
@@ -153,11 +190,16 @@ const Books: React.FC = () => {
           }
         }
       }
+
+      setIsLoadingOverlay(false);
     })();
 
     console.log("useEffect[user, debouncedKeyword, getBooksAsync] end");
-  }, [user, debouncedKeyword, getBooksAsync, isDesc, sortKeyId]);
+  }, [user, debouncedKeyword, getBooksAsync, isDesc, sortKeyId, setIsLoadingOverlay]);
 
+  /**
+   * useEffect
+   */
   useEffect(() => {
     console.log("useEffect[user] start");
 
@@ -176,8 +218,12 @@ const Books: React.FC = () => {
     console.log("useEffect[user] end");
   }, [user, getBooksCountAsync]);
 
-  const handleLoadMore = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+  /**
+   * 「もっと見る」ボタン押下イベント
+   */
+  const handleLoadMore = useCallback(async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     console.log("handleLoadMore start");
+    setIsLoadingOverlay(true);
 
     const result = await getBooksAsync({
       pageSize: PAGE_SIZE,
@@ -196,11 +242,16 @@ const Books: React.FC = () => {
       }
     }
 
+    setIsLoadingOverlay(false);
     console.log("handleLoadMore end");
-  };
+  }, [books, getBooksAsync, isDesc, keyword, lastEvaluatedKey, sortKeyId, setIsLoadingOverlay]);
 
-  const handleChangeSortKey = async (e: SelectChangeEvent) => {
+  /**
+   * ソート順変更イベント
+   */
+  const handleChangeSortKey = useCallback(async (e: SelectChangeEvent) => {
     console.log("handleChangeSortKey start");
+    setIsLoadingOverlay(true);
 
     if (user) {
       const val = parseInt(e.target.value);
@@ -232,9 +283,14 @@ const Books: React.FC = () => {
       }
     }
 
+    setIsLoadingOverlay(false);
     console.log("handleChangeSortKey end");
-  };
+  }, [debouncedKeyword, getBooksAsync, user, setIsLoadingOverlay]);
 
+  /**
+   * モーダルを閉じるイベント
+   * @param e イベント引数
+   */
   const handleCloseModal = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setModalIsOpen(false);

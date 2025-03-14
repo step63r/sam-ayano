@@ -18,6 +18,10 @@ import {
   Typography
 } from '@mui/material';
 
+/**
+ * 
+ * @returns 
+ */
 const UpdateBook: React.FC = () => {
   const urlParams = useParams<{ seqno: string }>();
   const navigate = useNavigate();
@@ -140,7 +144,7 @@ const UpdateBook: React.FC = () => {
     await updateBooksAsync(book);
   
     setIsLoadingOverlay(false);
-    navigate('/updateComplete');
+    navigate('/updateComplete', { replace: true });
   };
 
   const handleCloseModal = (e: React.MouseEvent<HTMLButtonElement>) => {
