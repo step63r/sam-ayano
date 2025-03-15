@@ -14,6 +14,7 @@ import Books from './components/Books';
 import BookDetail from './components/BookDetail';
 import UpdateComplete from './components/UpdateComplete';
 import UpdateBook from './components/UpdateBook';
+import PageHeader from './components/PageHeader';
 
 I18n.putVocabularies(translations);
 I18n.setLanguage('ja');
@@ -29,6 +30,7 @@ const App: React.FC = () => {
     <>
       <LoadingOverLay isLoadingOverlay={isLoadingOverlay} />
       <BrowserRouter>
+        <PageHeader />
         <Routes>
           <Route path='/' element={<Home />} />
           <Route path='/readBarcode' element={<ReadBarcode />} />

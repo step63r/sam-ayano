@@ -67,16 +67,7 @@ const Home: React.FC = () => {
   return (
     <Grid marginX={2}>
       <Stack spacing={2} direction='column'>
-        <Stack direction='column'>
-          <Typography variant='h3' component='div' sx={{ paddingTop: 2 }}>
-            SBMS
-          </Typography>
-          <Typography variant='body1' component='div'>
-            Serverless Book Management System
-          </Typography>
-        </Stack>
-        <Divider />
-        <Typography variant='body1' component='div'>
+        <Typography variant='body1' component='div' sx={{ paddingTop: 2 }}>
           {user?.signInDetails?.loginId} でログイン中です
         </Typography>
         <Divider />
