@@ -9,7 +9,7 @@ import {
   ListItemText,
   Typography
 } from "@mui/material";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Close, Menu } from "@mui/icons-material";
 
 /**
@@ -73,7 +73,7 @@ const PageHeader: React.FC = () => {
         <Container maxWidth="md">
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Box sx={{ marginTop: 'auto', marginBottom: 'auto' }}>
-              <Typography component="h1" variant="h5">SBMS</Typography>
+              <Typography component="h1" variant="h5">ツンドク.com (β版)</Typography>
             </Box>
             <Box>
               <List component="nav" sx={{ display: 'flex', justifyContent: 'flex-start' }}>
