@@ -17,6 +17,9 @@ import BookDetail from './components/BookDetail';
 import UpdateComplete from './components/UpdateComplete';
 import UpdateBook from './components/UpdateBook';
 import PageHeader from './components/PageHeader';
+import Settings from './components/Settings';
+import ChangePassword from './components/ChangePassword';
+import DeleteUser from './components/DeleteUser';
 
 I18n.putVocabularies(translations);
 I18n.setLanguage('ja');
@@ -57,6 +60,9 @@ const App: React.FC = () => {
             <Route path='/books' element={<Books />} />
             <Route path='/books/:seqno' element={<UpdateBook />} />
             <Route path='/updateComplete' element={<UpdateComplete />} />
+            <Route path='/settings' element={<Settings />} />
+            <Route path='/settings/changePassword' element={<ChangePassword />} />
+            <Route path='/settings/deleteUser' element={<DeleteUser />} />
           </Routes>
         </BrowserRouter>
       </ThemeProvider>

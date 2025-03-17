@@ -1,13 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import {
   Button,
-  Divider,
   Grid2 as Grid,
   Stack,
-  Typography
 } from '@mui/material';
 import { Add, Check, LibraryBooks, Settings } from "@mui/icons-material";
 
@@ -17,7 +14,6 @@ import { Add, Check, LibraryBooks, Settings } from "@mui/icons-material";
  */
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuthenticator((context) => [context.user]);
   const [disabled, setDisabled] = useState(false);
 
   /**
@@ -66,16 +62,11 @@ const Home: React.FC = () => {
 
   return (
     <Grid marginX={2}>
-      <Stack spacing={2} direction='column'>
-        <Typography variant='body1' component='div' sx={{ paddingTop: 2 }}>
-          {user?.signInDetails?.loginId} でログイン中です
-        </Typography>
-        <Divider />
+      <Stack spacing={2} direction='column' sx={{ paddingTop: 2 }}>
         <Button fullWidth disabled={disabled} size="large" variant="contained" onClick={handleReadBarcode} startIcon={<Add />}>書籍を登録する</Button>
         <Button fullWidth disabled={disabled} size="large" variant="contained" onClick={handleCheckExists} startIcon={<Check />}>所有済みチェック</Button>
         <Button fullWidth disabled={disabled} size="large" variant="contained" onClick={handleBooks} startIcon={<LibraryBooks />}>登録済み書籍を見る</Button>
-        <Button fullWidth disabled={true} size="large" variant="contained" onClick={handleSettings} startIcon={<Settings />}>アカウント設定</Button>
-        <Button fullWidth disabled={disabled} size="large" variant="outlined" onClick={signOut}>サインアウト</Button>
+        <Button fullWidth disabled={disabled} size="large" variant="outlined" onClick={handleSettings} startIcon={<Settings />}>アカウント設定</Button>
       </Stack>
     </Grid>
   );
