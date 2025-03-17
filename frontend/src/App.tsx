@@ -20,6 +20,8 @@ import PageHeader from './components/PageHeader';
 import Settings from './components/Settings';
 import ChangePassword from './components/ChangePassword';
 import DeleteUser from './components/DeleteUser';
+import Terms from './components/Terms';
+import PrivacyPolicy from './components/PrivacyPolicy';
 
 I18n.putVocabularies(translations);
 I18n.setLanguage('ja');
@@ -63,6 +65,8 @@ const App: React.FC = () => {
             <Route path='/settings' element={<Settings />} />
             <Route path='/settings/changePassword' element={<ChangePassword />} />
             <Route path='/settings/deleteUser' element={<DeleteUser />} />
+            <Route path='/terms' element={<Terms />} />
+            <Route path='/privacyPolicy' element={<PrivacyPolicy />} />
           </Routes>
         </BrowserRouter>
       </ThemeProvider>

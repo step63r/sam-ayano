@@ -30,6 +30,8 @@ const setNavLinks: Array<NavButton> = [
   { text: "所有済みチェック", url: "/readBarcode", state: { checkExists: true, } },
   { text: "書籍を検索", url: "/books" },
   { text: "アカウント設定", url: "/settings" },
+  { text: "利用規約", url: "/terms" },
+  { text: "プライバシーポリシー", url: "/privacyPolicy" },
 ];
 
 /**
