@@ -19,11 +19,11 @@ import {
 } from '@mui/material';
 
 /**
- * 
- * @returns 
+ * 登録情報更新画面
+ * @returns コンポーネント
  */
 const UpdateBook: React.FC = () => {
-  const urlParams = useParams<{ seqno: string }>();
+  const { seqno } = useParams();
   const navigate = useNavigate();
   const { setIsLoadingOverlay } = useContext(LoadingContext);
   const [user, setUser] = useState<GetCurrentUserOutput>();
@@ -33,6 +33,9 @@ const UpdateBook: React.FC = () => {
   const [iconType, setIconType] = useState<"none" | "info" | "warn" | "error">("none");
   const [modalMessage, setModalMessage] = useState("");
 
+  /**
+   * 書籍情報を取得する
+   */
   const getBookAsync = useCallback(async (seqno: number): Promise<Book | undefined> => {
     try {
       const url = `${config.ApiEndpoint}/get-book`;
@@ -49,8 +52,11 @@ const UpdateBook: React.FC = () => {
       setModalMessage("エラーが発生しました");
       setModalIsOpen(true);
     }
-  }, [user?.signInDetails?.loginId]);
+  }, [user]);
 
+  /**
+   * 書籍情報を更新する
+   */
   const updateBooksAsync = useCallback(async (item: Book): Promise<boolean> => {
     try {
       const url = `${config.ApiEndpoint}/update-books`;
@@ -78,6 +84,9 @@ const UpdateBook: React.FC = () => {
     }
   }, [book, user]);
 
+  /**
+   * useEffect
+   */
   useEffect(() => {
     console.log("useEffect[] start");
 
@@ -91,53 +100,101 @@ const UpdateBook: React.FC = () => {
     console.log("useEffect[] end");
   }, []);
 
+  /**
+   * useEffect
+   */
   useEffect(() => {
-    console.log("useEffect[user, getBookAsync, urlParams] start");
+    console.log("useEffect[user, getBookAsync, seqno, setIsLoadingOverlay] start");
 
     (async () => {
-      if (user && urlParams.seqno) {
-        const ret = await getBookAsync(Number(urlParams.seqno));
-        if (ret) {
-          setBook(ret);
+      setIsLoadingOverlay(true);
+
+      if (user && seqno) {
+        const result = await getBookAsync(Number(seqno));
+        console.log("getBookAsync result", result);
+
+        if (result) {
+          setBook(result);
         }
       }
+
+      setIsLoadingOverlay(false);
     })();
 
-    console.log("useEffect[user] end");
-  }, [user, getBookAsync, urlParams]);
+    console.log("useEffect[user, getBookAsync, seqno, setIsLoadingOverlay] end");
+  }, [user, getBookAsync, seqno, setIsLoadingOverlay]);
 
   useEffect(() => {
+    console.log("★useEffect(setIsLoadingOverlay) called");
+  }, [setIsLoadingOverlay]);
+
+  /** 
+   * useEffect
+   */
+  useEffect(() => {
+    console.log("useEffect[book] start");
+
     if (book?.title) {
       setIsButtonDisabled(false);
     } else {
       setIsButtonDisabled(true);
     }
+
+    console.log("useEffect[book] end");
   }, [book]);
 
+  /**
+   * タイトルが変更されたときのイベントハンドラ
+   * @param e イベント引数
+   */
   const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBook({ ...book, title: e.target.value });
   };
   
+  /**
+   * タイトル（カナ）が変更されたときのイベントハンドラ
+   * @param e イベント引数
+   */
   const handleChangeTitleKana = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBook({ ...book, titleKana: e.target.value });
   };
   
+  /**
+   * 著者が変更されたときのイベントハンドラ
+   * @param e イベント引数
+   */
   const handleChangeAuthor = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBook({ ...book, author: e.target.value });
   };
   
+  /**
+   * 出版社が変更されたときのイベントハンドラ
+   * @param e イベント引数
+   */
   const handleChangePublisherName = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBook({ ...book, publisherName: e.target.value });
   };
   
+  /**
+   * 発売日が変更されたときのイベントハンドラ
+   * @param e イベント引数
+   */
   const handleChangeSalesDate = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBook({ ...book, salesDate: e.target.value });
   };
   
+  /**
+   * ISBNが変更されたときのイベントハンドラ
+   * @param e イベント引数
+   */
   const handleChangeIsbn = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBook({ ...book, isbn: e.target.value });
   };
   
+  /**
+   * 「登録する」ボタン押下イベント
+   * @param e イベント引数
+   */
   const handleButtonClick = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     setIsLoadingOverlay(true);
   
@@ -147,6 +204,10 @@ const UpdateBook: React.FC = () => {
     navigate('/updateComplete', { replace: true });
   };
 
+  /**
+   * モーダルを閉じるイベント
+   * @param e イベント引数
+   */
   const handleCloseModal = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setModalIsOpen(false);
@@ -156,9 +217,9 @@ const UpdateBook: React.FC = () => {
   };
 
   return (
-    <Grid marginX={2}>
+    <Grid margin={2}>
       <Stack spacing={2} direction='column'>
-        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center', paddingTop: 2 }}>
+        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
           書籍詳細
         </Typography>
         <Divider />

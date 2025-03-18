@@ -16,9 +16,9 @@ import {
  */
 const PrivacyPolicy: React.FC = () => {
   return (
-    <Grid marginX={2}>
+    <Grid margin={2}>
       <Stack spacing={2} direction="column">
-        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center', paddingTop: 2 }}>
+        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center'}}>
           プライバシーポリシー
         </Typography>
         <Divider />
@@ -543,7 +543,7 @@ const PrivacyPolicy: React.FC = () => {
           <a href="mailto:ryo-uchiyama@minatoproject.com">ryo-uchiyama@minatoproject.com</a>
         </Typography>
 
-        <Typography variant="body2" sx={{ paddingBottom: 2, textAlign: 'right' }}>
+        <Typography variant="body2" sx={{ textAlign: 'right' }}>
           以上
         </Typography>
       </Stack>

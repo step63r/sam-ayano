@@ -16,9 +16,9 @@ import {
  */
 const Terms: React.FC = () => {
   return (
-    <Grid marginX={2}>
+    <Grid margin={2}>
       <Stack spacing={2} direction="column">
-        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center', paddingTop: 2 }}>
+        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
           利用規約
         </Typography>
         <Divider />
@@ -715,7 +715,7 @@ const Terms: React.FC = () => {
           </ListItem>
         </List>
         
-        <Typography variant="body2" sx={{ paddingBottom: 2, textAlign: 'right' }}>
+        <Typography variant="body2" sx={{ textAlign: 'right' }}>
           以上
         </Typography>
       </Stack>

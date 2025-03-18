@@ -130,7 +130,7 @@ const BookDetail: React.FC = () => {
   };
 
   /**
-   * 出版社が変更されたときのイベントハンドラ
+   * 発売日が変更されたときのイベントハンドラ
    * @param e イベント引数
    */
   const handleChangeSalesDate = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,7 +138,7 @@ const BookDetail: React.FC = () => {
   };
 
   /**
-   * 発売日が変更されたときのイベントハンドラ
+   * ISBNが変更されたときのイベントハンドラ
    * @param e イベント引数
    */
   const handleChangeIsbn = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,7 +146,7 @@ const BookDetail: React.FC = () => {
   };
 
   /**
-   * ISBNが変更されたときのイベントハンドラ
+   * 「登録する」ボタン押下イベント
    * @param e イベント引数
    */
   const handleButtonClick = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {

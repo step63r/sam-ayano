@@ -69,9 +69,9 @@ const ChangePassword: React.FC = () => {
   };
 
   return (
-    <Grid marginX={2}>
+    <Grid margin={2}>
       <Stack spacing={2} direction="column">
-        <Typography variant="subtitle1" component="div" sx={{ textAlign: 'center', paddingTop: 2 }}>
+        <Typography variant="subtitle1" component="div" sx={{ textAlign: 'center' }}>
           パスワード変更
         </Typography>
         <Divider />

@@ -61,8 +61,8 @@ const Home: React.FC = () => {
   };
 
   return (
-    <Grid marginX={2}>
-      <Stack spacing={2} direction='column' sx={{ paddingTop: 2 }}>
+    <Grid margin={2}>
+      <Stack spacing={2} direction='column'>
         <Button fullWidth disabled={disabled} size="large" variant="contained" onClick={handleReadBarcode} startIcon={<Add />}>書籍を登録する</Button>
         <Button fullWidth disabled={disabled} size="large" variant="contained" onClick={handleCheckExists} startIcon={<Check />}>所有済みチェック</Button>
         <Button fullWidth disabled={disabled} size="large" variant="contained" onClick={handleBooks} startIcon={<LibraryBooks />}>登録済み書籍を見る</Button>

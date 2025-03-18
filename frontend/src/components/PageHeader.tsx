@@ -72,20 +72,20 @@ const PageHeader: React.FC = () => {
   return (
     <>
       <AppBar component="header" position="sticky" sx={{ top: 0 }}>
-        <Container maxWidth="md">
+        <Container maxWidth="xl">
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Box sx={{ marginTop: 'auto', marginBottom: 'auto' }}>
-              <Typography component="h1" variant="h5">ツンドク.com (β版)</Typography>
+              <Typography component="h1" variant="h6">ツンドク.com (β版)</Typography>
             </Box>
             <Box>
               <List component="nav" sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-                <ListItem disablePadding>
+                <ListItem disablePadding sx={{ width: 'auto' }}>
                   <ListItemButton onClick={handleDrawerOpen} sx={{ textAlign: 'center', display: { xs: 'block', md: 'none' } }}>
                     <ListItemText primary={<Menu />} />
                   </ListItemButton>
                 </ListItem>
                 {setNavLinks.map((navLink) => (
-                  <ListItem key={navLink.text} disablePadding>
+                  <ListItem key={navLink.text} disablePadding sx={{ width: 'auto' }}>
                     <ListItemButton sx={{ textAlign: 'center', display: { xs: 'none', md: 'block' } }} onClick={(e) => handleNavButton(e, navLink)}>
                       <ListItemText primary={navLink.text} />
                     </ListItemButton>

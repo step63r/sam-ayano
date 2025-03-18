@@ -164,7 +164,7 @@ const Books: React.FC = () => {
    * useEffect
    */
   useEffect(() => {
-    console.log("useEffect[user, debouncedKeyword, getBooksAsync] start");
+    console.log("useEffect[user, debouncedKeyword, getBooksAsync, isDesc, sortKeyId, setIsLoadingOverlay] start");
 
     (async () => {
       setIsLoadingOverlay(true);
@@ -194,14 +194,14 @@ const Books: React.FC = () => {
       setIsLoadingOverlay(false);
     })();
 
-    console.log("useEffect[user, debouncedKeyword, getBooksAsync] end");
+    console.log("useEffect[user, debouncedKeyword, getBooksAsync, isDesc, sortKeyId, setIsLoadingOverlay] end");
   }, [user, debouncedKeyword, getBooksAsync, isDesc, sortKeyId, setIsLoadingOverlay]);
 
   /**
    * useEffect
    */
   useEffect(() => {
-    console.log("useEffect[user] start");
+    console.log("useEffect[user, getBooksCountAsync] start");
 
     (async () => {
       if (user) {
@@ -215,7 +215,7 @@ const Books: React.FC = () => {
       }
     })();
 
-    console.log("useEffect[user] end");
+    console.log("useEffect[user, getBooksCountAsync] end");
   }, [user, getBooksCountAsync]);
 
   /**
@@ -300,9 +300,9 @@ const Books: React.FC = () => {
   };
 
   return (
-    <Grid marginX={2}>
+    <Grid margin={2}>
       <Stack spacing={2} direction='column'>
-        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center', paddingTop: 2 }}>
+        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
           あなたの書籍情報
         </Typography>
         <Divider />

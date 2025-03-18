@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import {
   Button,
+  Grid2 as Grid,
   Stack,
   Typography
 } from '@mui/material';
@@ -26,12 +27,14 @@ const UpdateComplete: React.FC = () => {
   };
 
   return (
-    <Stack spacing={2} direction='column' margin={4}>
-      <Typography variant='h2' component='div' gutterBottom>
-        登録完了
-      </Typography>
-      <Button fullWidth disabled={disabled} variant='contained' onClick={handleOnClick}>ホームに戻る</Button>
-    </Stack>
+    <Grid margin={2}>
+      <Stack spacing={2} direction='column'>
+        <Typography variant='h2' component='div' gutterBottom>
+          登録完了
+        </Typography>
+        <Button fullWidth disabled={disabled} variant='contained' onClick={handleOnClick}>ホームに戻る</Button>
+      </Stack>
+    </Grid>
   )
 };
 
