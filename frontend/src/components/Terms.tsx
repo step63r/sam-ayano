@@ -16,7 +16,7 @@ import {
  */
 const Terms: React.FC = () => {
   return (
-    <Grid margin={2}>
+    <Grid margin={2} paddingBottom={2}>
       <Stack spacing={2} direction="column">
         <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
           利用規約

@@ -172,9 +172,9 @@ const BookDetail: React.FC = () => {
   };
 
   return (
-    <Grid marginX={2}>
+    <Grid margin={2} paddingBottom={2}>
       <Stack spacing={2} direction='column'>
-        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center', paddingTop: 2 }}>
+        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
           書籍の情報を確認・修正してください
         </Typography>
         <Divider />

@@ -27,7 +27,7 @@ const UpdateComplete: React.FC = () => {
   };
 
   return (
-    <Grid margin={2}>
+    <Grid margin={2} paddingBottom={2}>
       <Stack spacing={2} direction='column'>
         <Typography variant='h2' component='div' gutterBottom>
           登録完了
