@@ -103,7 +103,7 @@ export const lambdaHandler = async (event, context) => {
         }
 
         // 取得結果がpageSizeより多い場合はスライスする
-        if (items.length > pageSize) {
+        if (items.length > pageSize && currentLastEvaluatedKey) {
             items = items.slice(0, pageSize);
             currentLastEvaluatedKey.username = userName;
             currentLastEvaluatedKey.seqno = items[items.length - 1].seqno;
