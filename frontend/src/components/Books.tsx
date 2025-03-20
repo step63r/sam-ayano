@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDebounce } from "use-debounce";
-import { AuthUser, getCurrentUser } from "aws-amplify/auth";
+import { AuthUser, getCurrentUser, fetchAuthSession } from "aws-amplify/auth";
 import axios from "axios";
 import MessageModal from "./MessageModal";
 
@@ -100,7 +100,16 @@ const Books: React.FC = () => {
    */
   const getBooksAsync = useCallback(async (param: GetBooksAsyncParam): Promise<GetBooksAsyncResponse | undefined> => {
     try {
+      const session = await fetchAuthSession();
+      const token = session?.tokens?.idToken?.toString();
+      const options = {
+        'headers': {
+          'Content-Type': 'application/json',
+          'Authorization': token,
+        },
+      };
       const url = `${config.ApiEndpoint}/get-books`;
+
       const response = await axios.post(url, {
         userName: user?.signInDetails?.loginId ?? '',
         pageSize: param.pageSize,
@@ -108,7 +117,7 @@ const Books: React.FC = () => {
         keyword: param.keyword,
         sortKeyId: param.sortKeyId,
         desc: param.desc,
-      });
+      }, options);
 
       if (response.data) {
         return {
@@ -130,10 +139,19 @@ const Books: React.FC = () => {
    */
   const getBooksCountAsync = useCallback(async (): Promise<number| undefined> => {
     try {
+      const session = await fetchAuthSession();
+      const token = session?.tokens?.idToken?.toString();
       const url = `${config.ApiEndpoint}/get-books-count`;
+      const options = {
+        'headers': {
+          'Content-Type': 'application/json',
+          'Authorization': token,
+        },
+      };
+
       const response = await axios.post(url, {
         userName: user?.signInDetails?.loginId ?? '',
-      });
+      }, options);
 
       if (response.data) {
         return response.data.count;

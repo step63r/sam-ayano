@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getCurrentUser, GetCurrentUserOutput } from "aws-amplify/auth";
+import { getCurrentUser, GetCurrentUserOutput, fetchAuthSession } from "aws-amplify/auth";
 import { Book, initBook } from "../types/book";
 import axios from "axios";
 import MessageModal from "./MessageModal";
@@ -39,11 +39,20 @@ const UpdateBook: React.FC = () => {
    */
   const getBookAsync = useCallback(async (seqno: number): Promise<Book | undefined> => {
     try {
+      const session = await fetchAuthSession();
+      const token = session?.tokens?.idToken?.toString();
       const url = `${config.ApiEndpoint}/get-book`;
+      const options = {
+        'headers': {
+          'Content-Type': 'application/json',
+          'Authorization': token,
+        },
+      };
+
       const response = await axios.post(url, {
         userName: user?.signInDetails?.loginId ?? '',
         seqno: seqno
-      });
+      }, options);
 
       return response.data.items;
 
@@ -61,7 +70,16 @@ const UpdateBook: React.FC = () => {
    */
   const updateBooksAsync = useCallback(async (item: Book): Promise<boolean> => {
     try {
+      const session = await fetchAuthSession();
+      const token = session?.tokens?.idToken?.toString();
       const url = `${config.ApiEndpoint}/update-books`;
+      const options = {
+        'headers': {
+          'Content-Type': 'application/json',
+          'Authorization': token,
+        },
+      };
+
       await axios.post(url, {
         userName: user?.signInDetails?.loginId ?? '',
         data: {
@@ -73,7 +91,7 @@ const UpdateBook: React.FC = () => {
           title: book.title,
           titleKana: book.titleKana,
         }
-      });
+      }, options);
 
       return true;
 

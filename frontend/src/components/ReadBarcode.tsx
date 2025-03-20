@@ -1,6 +1,6 @@
 import React, {  useCallback, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCurrentUser, GetCurrentUserOutput } from "aws-amplify/auth";
+import { getCurrentUser, GetCurrentUserOutput, fetchAuthSession } from "aws-amplify/auth";
 import { Scanner, IDetectedBarcode } from '@yudiel/react-qr-scanner';
 import { LoadingContext } from "../context/LoadingProvider";
 import axios from "axios";
@@ -54,10 +54,19 @@ const ReadBarcode: React.FC = () => {
    */
   const searchOpenBdAsync = useCallback(async (isbnjan: string): Promise<Book | undefined> => {
     try {
+      const session = await fetchAuthSession();
+      const token = session?.tokens?.idToken?.toString();
       const url = `${config.ApiEndpoint}/search-openbd`;
+      const options = {
+        'headers': {
+          'Content-Type': 'application/json',
+          'Authorization': token,
+        },
+      };
+
       const response = await axios.post(url, {
         isbnjan: isbnjan
-      });
+      }, options);
 
       if (response.data) {
         const ret: Book = {
@@ -86,11 +95,20 @@ const ReadBarcode: React.FC = () => {
    */
   const checkExistsAsync = useCallback(async (isbn: string): Promise<boolean | undefined> => {
     try {
+      const session = await fetchAuthSession();
+      const token = session?.tokens?.idToken?.toString();
       const url = `${config.ApiEndpoint}/check-exists`;
+      const options = {
+        'headers': {
+          'Content-Type': 'application/json',
+          'Authorization': token,
+        },
+      };
+
       const response = await axios.post(url, {
         userName: user?.signInDetails?.loginId ?? '',
         isbn: isbn,
-      });
+      }, options);
 
       if (response.data) {
         return response.data.result;

@@ -1,8 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: >
+Description: |
   lambda-nodejs22.x
-
   Sample SAM Template for lambda-nodejs22.x
 
 Parameters:
@@ -16,42 +15,81 @@ Globals:
   Api:
     Cors:
       AllowOrigin: "'*'"
-      AllowMethods: "'POST'"
-      AllowHeaders: "'Content-Type,X-CSRF-TOKEN'"
+      AllowMethods: "'OPTIONS,POST'"
+      # AllowCredentials: true
+      AllowHeaders: "'Content-Type,X-CSRF-TOKEN,Authorization'"
 
 Resources:
   AyanoLambdaRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
-          - Effect: "Allow"
-            Action: "sts:AssumeRole"
+          - Effect: Allow
+            Action: sts:AssumeRole
             Principal:
               Service: lambda.amazonaws.com
       Policies:
-        - PolicyName: "ayano-lambda-policy"
+        - PolicyName: ayano-lambda-policy
           PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
-              - Effect: "Allow"
+              - Effect: Allow
                 Action:
-                  - "dynamodb:BatchGetItem"
-                  - "dynamodb:Describe*"
-                  - "dynamodb:List*"
-                  - "dynamodb:GetItem"
-                  - "dynamodb:Query"
-                  - "dynamodb:Scan"
-                  - "dynamodb:UpdateItem"
-                  - "dynamodb:PutItem"
-                Resource: "*"
-              - Effect: "Allow"
+                  - dynamodb:BatchGetItem
+                  - dynamodb:Describe*
+                  - dynamodb:List*
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:UpdateItem
+                  - dynamodb:PutItem
+                Resource: '*'
+              - Effect: Allow
                 Action:
-                  - "logs:CreateLogGroup"
-                  - "logs:CreateLogStream"
-                  - "logs:PutLogEvents"
-                Resource: "*"
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'
+  ApiGatewayCloudWatchRoleArn:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn: !GetAtt ApiGatewayCloudWatchRole.Arn
+  ApiGatewayCloudWatchRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: apigateway.amazonaws.com
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      # Cors:
+      #   AllowOrigin: "'*'"
+      #   AllowMethods: "'OPTIONS,POST'"
+      #   AllowCredentials: true
+      #   AllowHeaders: "'Content-Type,X-CSRF-TOKEN,Authorization,Access-Control-Allow-Credentials,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+      MethodSettings:
+        - ResourcePath: /*
+          HttpMethod: '*'
+          LoggingLevel: "INFO"
+          DataTraceEnabled: true
+          MetricsEnabled: true
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        AddDefaultAuthorizerToCorsPreflight: false
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: arn:aws:cognito-idp:ap-northeast-1:966191971257:userpool/ap-northeast-1_CouspoB7q
   SearchRakutenBookFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -67,6 +105,7 @@ Resources:
           Properties:
             Path: /search-rakuten-book
             Method: post
+            RestApiId: !Ref ApiGateway
       Environment:
         Variables:
           RAKUTEN_APPLICATION_ID: !Ref RAKUTENAPPLICATIONID
@@ -85,6 +124,7 @@ Resources:
           Properties:
             Path: /search-openbd
             Method: post
+            RestApiId: !Ref ApiGateway
   UpdateBooksFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -100,6 +140,7 @@ Resources:
           Properties:
             Path: /update-books
             Method: post
+            RestApiId: !Ref ApiGateway
   GetBooksFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -115,6 +156,7 @@ Resources:
           Properties:
             Path: /get-books
             Method: post
+            RestApiId: !Ref ApiGateway
   GetBookFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -130,6 +172,7 @@ Resources:
           Properties:
             Path: /get-book
             Method: post
+            RestApiId: !Ref ApiGateway
   GetBooksCountFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -140,11 +183,12 @@ Resources:
       Architectures:
         - x86_64
       Events:
-        GetBook:
+        GetBooksCount:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             Path: /get-books-count
             Method: post
+            RestApiId: !Ref ApiGateway
   CheckExistsFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -155,49 +199,50 @@ Resources:
       Architectures:
         - x86_64
       Events:
-        GetBook:
+        CheckExists:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             Path: /check-exists
             Method: post
+            RestApiId: !Ref ApiGateway
 
-Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  SearchRakutenBookApi:
-    Description: "API Gateway endpoint URL for Prod stage for Search Rakuten Book function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/search-rakuten-book/"
-  SearchRakutenBookFunction:
-    Description: "Search Rakuten Book Lambda Function ARN"
-    Value: !GetAtt SearchRakutenBookFunction.Arn
-  SearchOpenBdApi:
-    Description: "API Gateway endpoint URL for Prod stage for Search OpenBD function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/search-openbd/"
-  SearchOpenBdFunction:
-    Description: "Search OpenBD Lambda Function ARN"
-    Value: !GetAtt SearchOpenBdFunction.Arn
-  UpdateBooksApi:
-    Description: "API Gateway endpoint URL for Prod stage for Update Books function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/update-books/"
-  UpdateBooksFunction:
-    Description: "Update Books Lambda Function ARN"
-    Value: !GetAtt UpdateBooksFunction.Arn
-  GetBooksApi:
-    Description: "API Gateway endpoint URL for Prod stage for Get Books function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/get-books/"
-  GetBooksFunction:
-    Description: "Get Books Lambda Function ARN"
-    Value: !GetAtt GetBooksFunction.Arn
-  GetBookApi:
-    Description: "API Gateway endpoint URL for Prod stage for Get Book function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/get-book/"
-  GetBookFunction:
-    Description: "Get Book Lambda Function ARN"
-    Value: !GetAtt GetBookFunction.Arn
-  GetBooksCountFunction:
-    Description: "Get Books Count Lambda Function ARN"
-    Value: !GetAtt GetBooksCountFunction.Arn
-  CheckExistsFunction:
-    Description: "Check Exists Lambda Function ARN"
-    Value: !GetAtt CheckExistsFunction.Arn
+# Outputs:
+#   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+#   # Find out more about other implicit resources you can reference within SAM
+#   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+#   SearchRakutenBookApi:
+#     Description: API Gateway endpoint URL for Prod stage for Search Rakuten Book function
+#     Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/search-rakuten-book/
+#   SearchRakutenBookFunction:
+#     Description: Search Rakuten Book Lambda Function ARN
+#     Value: !GetAtt SearchRakutenBookFunction.Arn
+#   SearchOpenBdApi:
+#     Description: API Gateway endpoint URL for Prod stage for Search OpenBD function
+#     Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/search-openbd/
+#   SearchOpenBdFunction:
+#     Description: Search OpenBD Lambda Function ARN
+#     Value: !GetAtt SearchOpenBdFunction.Arn
+#   UpdateBooksApi:
+#     Description: API Gateway endpoint URL for Prod stage for Update Books function
+#     Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/update-books/
+#   UpdateBooksFunction:
+#     Description: Update Books Lambda Function ARN
+#     Value: !GetAtt UpdateBooksFunction.Arn
+#   GetBooksApi:
+#     Description: API Gateway endpoint URL for Prod stage for Get Books function
+#     Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/get-books/
+#   GetBooksFunction:
+#     Description: Get Books Lambda Function ARN
+#     Value: !GetAtt GetBooksFunction.Arn
+#   GetBookApi:
+#     Description: API Gateway endpoint URL for Prod stage for Get Book function
+#     Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/get-book/
+#   GetBookFunction:
+#     Description: Get Book Lambda Function ARN
+#     Value: !GetAtt GetBookFunction.Arn
+#   GetBooksCountFunction:
+#     Description: Get Books Count Lambda Function ARN
+#     Value: !GetAtt GetBooksCountFunction.Arn
+#   CheckExistsFunction:
+#     Description: Check Exists Lambda Function ARN
+#     Value: !GetAtt CheckExistsFunction.Arn
