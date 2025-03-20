@@ -145,6 +145,21 @@ Resources:
           Properties:
             Path: /get-books-count
             Method: post
+  CheckExistsFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: check-exists/
+      Handler: app.lambdaHandler
+      Runtime: nodejs22.x
+      Role: !GetAtt AyanoLambdaRole.Arn
+      Architectures:
+        - x86_64
+      Events:
+        GetBook:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /check-exists
+            Method: post
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
@@ -183,3 +198,6 @@ Outputs:
   GetBooksCountFunction:
     Description: "Get Books Count Lambda Function ARN"
     Value: !GetAtt GetBooksCountFunction.Arn
+  CheckExistsFunction:
+    Description: "Check Exists Lambda Function ARN"
+    Value: !GetAtt CheckExistsFunction.Arn

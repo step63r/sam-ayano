@@ -14,6 +14,7 @@ import { DeleteUserComponents } from "@aws-amplify/ui-react/dist/types/component
 const DeleteUser: React.FC = () => {
   const navigate = useNavigate();
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [modalType, setModalType] = useState<"none" | "yesNo">("none");
   const [iconType, setIconType] = useState<"none" | "info" | "warn" | "error">("none");
   const [modalMessage, setModalMessage] = useState("");
 
@@ -31,6 +32,7 @@ const DeleteUser: React.FC = () => {
    * アカウント削除が成功したときのイベントハンドラ
    */
   const handleSuccessDeleteUser = () => {
+    setModalType("none");
     setIconType("info");
     setModalMessage("アカウントを削除しました");
     setModalIsOpen(true);
@@ -41,6 +43,7 @@ const DeleteUser: React.FC = () => {
    * @param error エラー内容
    */
   const handleErrorDeleteUser = (error: Error) => {
+    setModalType("none");
     setIconType("error");
     setModalMessage(error.message);
     setModalIsOpen(true);
@@ -53,6 +56,7 @@ const DeleteUser: React.FC = () => {
   const handleCloseModal = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setModalIsOpen(false);
+    setModalType("none");
     setIconType("none");
     setModalMessage("");
     navigate("/");
@@ -77,8 +81,9 @@ const DeleteUser: React.FC = () => {
           onError={handleErrorDeleteUser}
         />
         <MessageModal
-          iconType={iconType}
           isOpen={modalIsOpen}
+          iconType={iconType}
+          modalType={modalType}
           message={modalMessage}
           handleClose={handleCloseModal}
         />

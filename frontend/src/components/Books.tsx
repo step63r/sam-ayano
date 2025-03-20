@@ -91,6 +91,7 @@ const Books: React.FC = () => {
   const [isDesc, setIsDesc] = useState(false);
   const [booksCount, setBooksCount] = useState(0);
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [modalType, setModalType] = useState<"none" | "yesNo">("none");
   const [iconType, setIconType] = useState<"none" | "info" | "warn" | "error">("none");
   const [modalMessage, setModalMessage] = useState("");
 
@@ -117,6 +118,7 @@ const Books: React.FC = () => {
       }
     } catch (error) {
       console.log("getBooksAsync ERROR!", error);
+      setModalType("none");
       setIconType("error");
       setModalMessage("エラーが発生しました");
       setModalIsOpen(true);
@@ -138,6 +140,7 @@ const Books: React.FC = () => {
       }
     } catch (error) {
       console.log("getBooksCountAsync ERROR!", error);
+      setModalType("none");
       setIconType("error");
       setModalMessage("エラーが発生しました");
       setModalIsOpen(true);
@@ -294,6 +297,7 @@ const Books: React.FC = () => {
   const handleCloseModal = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setModalIsOpen(false);
+    setModalType("none");
     setIconType("none");
     setModalMessage("");
     navigate('/');
@@ -363,8 +367,9 @@ const Books: React.FC = () => {
         <Button fullWidth variant='outlined' onClick={() => navigate('/')}>ホームに戻る</Button>
       </Stack>
       <MessageModal
-        iconType={iconType}
         isOpen={modalIsOpen}
+        iconType={iconType}
+        modalType={modalType}
         message={modalMessage}
         handleClose={handleCloseModal}
       />

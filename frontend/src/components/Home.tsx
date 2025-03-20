@@ -6,7 +6,11 @@ import {
   Grid2 as Grid,
   Stack,
 } from '@mui/material';
-import { Add, Check, LibraryBooks, Settings } from "@mui/icons-material";
+import {
+  Add,
+  LibraryBooks,
+  Settings
+} from "@mui/icons-material";
 
 /**
  * ホーム画面
@@ -24,20 +28,6 @@ const Home: React.FC = () => {
     e.preventDefault();
     setDisabled(true);
     navigate('/readBarcode');
-  };
-
-  /**
-   * 「所有済みチェック」ボタン押下イベント
-   * @param e イベント引数
-   */
-  const handleCheckExists = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    e.preventDefault();
-    setDisabled(true);
-    navigate('/readBarcode', {
-      state: {
-        checkExists: true,
-      },
-    });
   };
 
   /**
@@ -64,7 +54,6 @@ const Home: React.FC = () => {
     <Grid margin={2} paddingBottom={2}>
       <Stack spacing={2} direction='column'>
         <Button fullWidth disabled={disabled} size="large" variant="contained" onClick={handleReadBarcode} startIcon={<Add />}>書籍を登録する</Button>
-        <Button fullWidth disabled={disabled} size="large" variant="contained" onClick={handleCheckExists} startIcon={<Check />}>所有済みチェック</Button>
         <Button fullWidth disabled={disabled} size="large" variant="contained" onClick={handleBooks} startIcon={<LibraryBooks />}>登録済み書籍を見る</Button>
         <Button fullWidth disabled={disabled} size="large" variant="outlined" onClick={handleSettings} startIcon={<Settings />}>アカウント設定</Button>
       </Stack>

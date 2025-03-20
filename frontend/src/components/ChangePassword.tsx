@@ -13,6 +13,7 @@ import { ChangePasswordComponents } from "@aws-amplify/ui-react/dist/types/compo
 const ChangePassword: React.FC = () => {
   const navigate = useNavigate();
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [modalType, setModalType] = useState<"none" | "yesNo">("none");
   const [iconType, setIconType] = useState<"none" | "info" | "warn" | "error">("none");
   const [modalMessage, setModalMessage] = useState("");
 
@@ -41,6 +42,7 @@ const ChangePassword: React.FC = () => {
    * パスワード変更が成功したときのイベントハンドラ
    */
   const handleSuccessChangePassword = () => {
+    setModalType("none");
     setIconType("info");
     setModalMessage("パスワードを変更しました");
     setModalIsOpen(true);
@@ -51,6 +53,7 @@ const ChangePassword: React.FC = () => {
    * @param error エラー内容
    */
   const handleErrorChangePassword = (error: Error) => {
+    setModalType("none");
     setIconType("error");
     setModalMessage(error.message);
     setModalIsOpen(true);
@@ -63,6 +66,7 @@ const ChangePassword: React.FC = () => {
   const handleCloseModal = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setModalIsOpen(false);
+    setModalType("none");
     setIconType("none");
     setModalMessage("");
     navigate("/");
@@ -81,8 +85,9 @@ const ChangePassword: React.FC = () => {
           onError={handleErrorChangePassword}
         />
         <MessageModal
-          iconType={iconType}
           isOpen={modalIsOpen}
+          iconType={iconType}
+          modalType={modalType}
           message={modalMessage}
           handleClose={handleCloseModal}
         />

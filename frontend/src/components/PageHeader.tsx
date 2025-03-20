@@ -27,7 +27,6 @@ type NavButton = {
 const setNavLinks: Array<NavButton> = [
   { text: "トップ", url: "/" },
   { text: "書籍を登録", url: "/readBarcode" },
-  { text: "所有済みチェック", url: "/readBarcode", state: { checkExists: true, } },
   { text: "書籍を検索", url: "/books" },
   { text: "アカウント設定", url: "/settings" },
   { text: "利用規約", url: "/terms" },

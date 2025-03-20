@@ -1,5 +1,5 @@
 import React, {  useCallback, useContext, useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { getCurrentUser, GetCurrentUserOutput } from "aws-amplify/auth";
 import { Scanner, IDetectedBarcode } from '@yudiel/react-qr-scanner';
 import { LoadingContext } from "../context/LoadingProvider";
@@ -15,7 +15,7 @@ import {
   Stack,
   Typography
 } from "@mui/material";
-import { Book, GetBooksResponse } from "../types/book";
+import { Book } from "../types/book";
 
 /**
  * バーコード読取画面
@@ -23,16 +23,15 @@ import { Book, GetBooksResponse } from "../types/book";
  */
 const ReadBarcode: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { setIsLoadingOverlay } = useContext(LoadingContext);
   const [user, setUser] = useState<GetCurrentUserOutput>();
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [modalType, setModalType] = useState<"none" | "yesNo">("none");
   const [iconType, setIconType] = useState<"none" | "info" | "warn" | "error">("none");
   const [modalMessage, setModalMessage] = useState("");
   const [disabled, setDisabled] = useState(false);
-  // eslint-disable-next-line
-  const [checkExists, _setCheckExists]
-    = useState<{ checkExists: boolean }>(location.state as { checkExists: boolean });
+  const [isbn, setIsbn] = useState("");
+  const [proceedPhase, setProceedPhase] = useState(0);
 
   /**
    * useEffect
@@ -83,28 +82,25 @@ const ReadBarcode: React.FC = () => {
   }, [user]);
 
   /**
-   * 書籍情報を取得する
+   * 書籍を所有しているか確認する
    */
-  const getBooksAsync = useCallback(async (isbn: string): Promise<GetBooksResponse | undefined> => {
-    const url = `${config.ApiEndpoint}/get-books`;
-    let ret: GetBooksResponse = { items: [] };
-
-    await axios.post(url, {
-      userName: user?.signInDetails?.loginId ?? '',
-      pageSize: 1,
-      isbn: isbn,
-    })
-      .then(response => {
-        ret = response.data;
-      })
-      .catch(error => {
-        console.log(error);
-        setIconType("error");
-        setModalMessage("エラーが発生しました");
-        setModalIsOpen(true);
+  const checkExistsAsync = useCallback(async (isbn: string): Promise<boolean | undefined> => {
+    try {
+      const url = `${config.ApiEndpoint}/check-exists`;
+      const response = await axios.post(url, {
+        userName: user?.signInDetails?.loginId ?? '',
+        isbn: isbn,
       });
-    
-    return Promise.resolve(ret);
+
+      if (response.data) {
+        return response.data.result;
+      }
+    } catch (error) {
+      console.log("checkExistsAsync ERROR!", error);
+      setIconType("error");
+      setModalMessage("エラーが発生しました");
+      setModalIsOpen(true);
+    }
   }, [user]);
 
   /**
@@ -117,28 +113,27 @@ const ReadBarcode: React.FC = () => {
       for (const item of results) {
         if (item.rawValue.startsWith("978") || item.rawValue.startsWith("979")) {
           console.log(item);
-          if (checkExists) {
-            const ret = await getBooksAsync(item.rawValue);
-            if (ret!.items.length > 0) {
-              setIconType("info");
-              setModalMessage("この書籍を1冊以上所有しています");
-            } else {
-              setIconType("info");
-              setModalMessage("この書籍を1冊も所有していません");
-            }
+          setIsbn(item.rawValue);
+          const isExists = await checkExistsAsync(item.rawValue);
+          if (isExists) {
+            setProceedPhase(1);
+            setModalType("yesNo");
+            setIconType("warn");
+            setModalMessage("この書籍は登録済みです。\n続けますか？");
             setModalIsOpen(true);
-
           } else {
             const ret = await searchOpenBdAsync(item.rawValue);
             if (ret) {
-              navigate('/book', {
+              navigate("/book", {
                 state: {
                   book: ret
                 }
               });
             } else {
+              setProceedPhase(2);
+              setModalType("yesNo");
               setIconType("warn");
-              setModalMessage("書籍が見つかりませんでした");
+              setModalMessage("書籍が見つかりませんでした。\n手動で登録しますか？");
               setModalIsOpen(true);
             }
           }
@@ -147,7 +142,7 @@ const ReadBarcode: React.FC = () => {
     }
 
     setIsLoadingOverlay(false);
-  }, [getBooksAsync, checkExists, navigate, setIsLoadingOverlay, searchOpenBdAsync]);
+  }, [checkExistsAsync, navigate, setIsLoadingOverlay, searchOpenBdAsync]);
 
   /**
    * モーダルを閉じるイベント
@@ -155,10 +150,79 @@ const ReadBarcode: React.FC = () => {
    */
   const handleCloseModal = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    resetModal();
+    navigate('/');
+  };
+
+  /**
+   * モーダルのYesイベント
+   * @param e イベント引数
+   */
+  const handleYesModal = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    resetModal();
+
+    // 「この書籍は登録済みです\n続けますか？」がYesの場合
+    if (proceedPhase === 1) {
+      const ret = await searchOpenBdAsync(isbn);
+      if (ret) {
+        navigate("/book", {
+          state: {
+            book: ret
+          }
+        });
+      } else {
+        setProceedPhase(2);
+        setModalType("yesNo");
+        setIconType("warn");
+        setModalMessage("書籍が見つかりませんでした。\n手動で登録しますか？");
+        setModalIsOpen(true);
+      }
+
+    // 「書籍が見つかりませんでした\n手動で登録しますか？」がYesの場合
+    } else if (proceedPhase === 2) {
+      navigate("/book", {
+        state: {
+          book: {
+            username: user?.signInDetails?.loginId ?? '',
+            seqno: -1,
+            author: "",
+            isbn: isbn ?? "",
+            publisherName: "",
+            salesDate: "",
+            title: "",
+            titleKana: "",
+          }
+        }
+      });
+
+    // それ以外の場合（想定外）
+    } else {
+      console.log("handleYesModal ERROR! invalid proceedPhase");
+      setIconType("error");
+      setModalMessage("エラーが発生しました");
+      setModalIsOpen(true);
+    }
+  };
+
+  /**
+   * モーダルのNoイベント
+   * @param e イベント引数
+   */
+  const handleNoModal = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    resetModal();
+    navigate('/');
+  }
+
+  /**
+   * モーダルを非表示（リセット）する
+   */
+  const resetModal = () => {
     setModalIsOpen(false);
+    setModalType("none");
     setIconType("none");
     setModalMessage("");
-    navigate('/');
   };
 
   /**
@@ -186,17 +250,18 @@ const ReadBarcode: React.FC = () => {
               audio: false,
             }}
           />
-          {!checkExists && (
-            <Button fullWidth disabled={disabled} variant="text" onClick={handleManualInput}>
-              バーコードが読み取れない場合
-            </Button>
-          )}
+          <Button fullWidth disabled={disabled} variant="text" onClick={handleManualInput}>
+            バーコードが読み取れない場合
+          </Button>
         </Stack>
         <MessageModal
-          iconType={iconType}
           isOpen={modalIsOpen}
+          iconType={iconType}
+          modalType={modalType}
           message={modalMessage}
           handleClose={handleCloseModal}
+          handleYes={handleYesModal}
+          handleNo={handleNoModal}
         />
       </Grid>
     </>
