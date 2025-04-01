@@ -51,7 +51,10 @@ const modalStyles: Modal.Styles = {
     minHeight: "25%",
     maxHeight: "80%",
     padding: "16px",
-  }
+  },
+  overlay: {
+    zIndex: 1000
+  },
 };
 
 /**
@@ -74,6 +77,7 @@ const MessageModal: React.FC<MessageModalProps> = (
       isOpen={isOpen}
       onRequestClose={handleClose}
       style={modalStyles}
+      shouldCloseOnOverlayClick={false}
     >
       <Stack spacing={2} direction="column">
         {iconType === "info" && (

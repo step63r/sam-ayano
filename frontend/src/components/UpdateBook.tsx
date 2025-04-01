@@ -106,6 +106,38 @@ const UpdateBook: React.FC = () => {
   }, [book, user]);
 
   /**
+   * 書籍を削除する
+   */
+  const deleteBookAsync = useCallback(async (item: Book): Promise<boolean> => {
+    try {
+      const session = await fetchAuthSession();
+      const token = session?.tokens?.idToken?.toString();
+      const url = `${config.ApiEndpoint}/delete-book`;
+      const options = {
+        'headers': {
+          'Content-Type': 'application/json',
+          'Authorization': token,
+        },
+      };
+
+      await axios.post(url, {
+        userName: user?.signInDetails?.loginId ?? '',
+        seqno: item.seqno,
+      }, options);
+
+      return true;
+
+    } catch (error) {
+      console.log("deleteBookAsync ERROR!", error);
+      setModalType("none");
+      setIconType("error");
+      setModalMessage("エラーが発生しました");
+      setModalIsOpen(true);
+      return false;
+    }
+  }, [user]);
+
+  /**
    * useEffect
    */
   useEffect(() => {
@@ -226,6 +258,18 @@ const UpdateBook: React.FC = () => {
   };
 
   /**
+   * 「削除する」ボタン押下イベント
+   * @param e イベント引数
+   */
+  const handleDeleteButtonClick = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+    setModalType("yesNo");
+    setIconType("info");
+    setModalMessage("この書籍を削除しますか？");
+    setModalIsOpen(true);
+  };
+
+  /**
    * モーダルを閉じるイベント
    * @param e イベント引数
    */
@@ -236,6 +280,41 @@ const UpdateBook: React.FC = () => {
     setIconType("none");
     setModalMessage("");
     navigate('/');
+  };
+
+  /**
+   * モーダルのYesイベント
+   * @param e イベント引数
+   */
+  const handleYesModal = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    resetModal();
+
+    setIsLoadingOverlay(true);
+
+    await deleteBookAsync(book);
+
+    setIsLoadingOverlay(false);
+    navigate('/books', { replace: true });
+  };
+
+  /**
+   * モーダルのNoイベント
+   * @param e イベント引数
+   */
+  const handleNoModal = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    resetModal();
+  };
+
+  /**
+   * モーダルを非表示（リセット）する
+   */
+  const resetModal = () => {
+    setModalIsOpen(false);
+    setModalType("none");
+    setIconType("none");
+    setModalMessage("");
   };
 
   return (
@@ -266,6 +345,7 @@ const UpdateBook: React.FC = () => {
           value={book.isbn} onChange={handleChangeIsbn}
         />
         <Button fullWidth variant='contained' disabled={isButtonDisabled} onClick={handleButtonClick}>登録する</Button>
+        <Button fullWidth variant='outlined' color="error" onClick={handleDeleteButtonClick}>削除する</Button>
         <Button fullWidth variant='outlined' onClick={() => navigate('/books')}>一覧に戻る</Button>
       </Stack>
       <MessageModal
@@ -274,6 +354,8 @@ const UpdateBook: React.FC = () => {
         modalType={modalType}
         message={modalMessage}
         handleClose={handleCloseModal}
+        handleYes={handleYesModal}
+        handleNo={handleNoModal}
       />
     </Grid>
   );
