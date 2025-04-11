@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useCallback } from "react";
+import React, { useEffect, useState, useContext, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getCurrentUser, GetCurrentUserOutput, fetchAuthSession } from "aws-amplify/auth";
 import { Book, initBook } from "../types/book";
@@ -18,6 +18,8 @@ import {
   Typography
 } from '@mui/material';
 
+import * as AutoKana from "vanilla-autokana";
+
 /**
  * 登録情報更新画面
  * @returns コンポーネント
@@ -33,6 +35,7 @@ const UpdateBook: React.FC = () => {
   const [modalType, setModalType] = useState<"none" | "yesNo">("none");
   const [iconType, setIconType] = useState<"none" | "info" | "warn" | "error">("none");
   const [modalMessage, setModalMessage] = useState("");
+  const autoKana = useRef<AutoKana.AutoKana>(null);
 
   /**
    * 書籍情報を取得する
@@ -150,6 +153,9 @@ const UpdateBook: React.FC = () => {
       }
     })();
 
+    // AutoKanaのバインド
+        autoKana.current = AutoKana.bind("#formTitle", "#formTitleKana", { katakana: true });
+
     console.log("useEffect[] end");
   }, []);
 
@@ -201,7 +207,13 @@ const UpdateBook: React.FC = () => {
    * @param e イベント引数
    */
   const handleChangeTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setBook({ ...book, title: e.target.value });
+    // AutoKanaの実行
+    if (autoKana.current) {
+      setBook({ ...book, title: e.target.value, titleKana: autoKana.current.getFurigana() });
+    }
+    else {
+      setBook({ ...book, title: e.target.value });
+    }
   };
   
   /**
