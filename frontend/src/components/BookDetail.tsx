@@ -70,7 +70,7 @@ const BookDetail: React.FC = () => {
    * useEffect
    */
   useEffect(() => {
-    if (book?.title) {
+    if (book?.title && book?.titleKana && book?.salesDate) {
       setIsButtonDisabled(false);
     } else {
       setIsButtonDisabled(true);
@@ -80,7 +80,7 @@ const BookDetail: React.FC = () => {
   /**
    * 書籍情報を登録する
    */
-  const updateBooksAsync = useCallback(async (book: Book): Promise<boolean | undefined> => {
+  const updateBooksAsync = useCallback(async (book: Book): Promise<boolean> => {
     try {
       const session = await fetchAuthSession();
       const token = session?.tokens?.idToken?.toString();
@@ -111,6 +111,7 @@ const BookDetail: React.FC = () => {
       setIconType("error");
       setModalMessage("エラーが発生しました");
       setModalIsOpen(true);
+      return false;
     }
   }, [user]);
 
@@ -176,10 +177,13 @@ const BookDetail: React.FC = () => {
     setDisabled(true);
     setIsLoadingOverlay(true);
 
-    await updateBooksAsync(book);
+    const ret = await updateBooksAsync(book);
 
     setIsLoadingOverlay(false);
-    navigate('/updateComplete', { replace: true });
+
+    if (ret) {
+      navigate('/updateComplete', { replace: true });
+    }
   };
 
   /**
@@ -206,7 +210,8 @@ const BookDetail: React.FC = () => {
           error={book.title === ''}
           value={book.title} onChange={handleChangeTitle}
         />
-        <TextField id='formTitleKana' label='タイトル（カナ）'
+        <TextField required id='formTitleKana' label='タイトル（カナ）'
+          error={book.titleKana === ''}
           value={book.titleKana} onChange={handleChangeTitleKana}
         />
         <TextField id='formAuthor' label='著者'
@@ -215,7 +220,8 @@ const BookDetail: React.FC = () => {
         <TextField id='formPublisherName' label='出版社'
           value={book.publisherName} onChange={handleChangePublisherName}
         />
-        <TextField id='formSalesData' label='発売日'
+        <TextField required id='formSalesData' label='発売日'
+          error={book.salesDate === ''}
           value={book.salesDate} onChange={handleChangeSalesDate}
         />
         <TextField id='formIsbn' label='ISBN'

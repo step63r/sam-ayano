@@ -193,7 +193,7 @@ const UpdateBook: React.FC = () => {
   useEffect(() => {
     console.log("useEffect[book] start");
 
-    if (book?.title) {
+    if (book?.title && book?.titleKana && book?.salesDate) {
       setIsButtonDisabled(false);
     } else {
       setIsButtonDisabled(true);
@@ -263,10 +263,13 @@ const UpdateBook: React.FC = () => {
   const handleButtonClick = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     setIsLoadingOverlay(true);
   
-    await updateBooksAsync(book);
+    const ret = await updateBooksAsync(book);
   
     setIsLoadingOverlay(false);
-    navigate('/updateComplete', { replace: true });
+
+    if (ret) {
+      navigate('/updateComplete', { replace: true });
+    }
   };
 
   /**
@@ -304,10 +307,13 @@ const UpdateBook: React.FC = () => {
 
     setIsLoadingOverlay(true);
 
-    await deleteBookAsync(book);
+    const ret = await deleteBookAsync(book);
 
     setIsLoadingOverlay(false);
-    navigate('/books', { replace: true });
+
+    if (ret) {
+      navigate('/books', { replace: true });
+    }
   };
 
   /**
@@ -340,7 +346,8 @@ const UpdateBook: React.FC = () => {
           error={book.title === ''}
           value={book.title} onChange={handleChangeTitle}
         />
-        <TextField id='formTitleKana' label='タイトル（カナ）'
+        <TextField required id='formTitleKana' label='タイトル（カナ）'
+          error={book.titleKana === ''}
           value={book.titleKana} onChange={handleChangeTitleKana}
         />
         <TextField id='formAuthor' label='著者'
@@ -349,7 +356,8 @@ const UpdateBook: React.FC = () => {
         <TextField id='formPublisherName' label='出版社'
           value={book.publisherName} onChange={handleChangePublisherName}
         />
-        <TextField id='formSalesData' label='発売日'
+        <TextField required id='formSalesData' label='発売日'
+          error={book.salesDate === ''}
           value={book.salesDate} onChange={handleChangeSalesDate}
         />
         <TextField id='formIsbn' label='ISBN'
