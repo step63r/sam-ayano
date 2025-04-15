@@ -91,6 +91,47 @@ const ReadBarcode: React.FC = () => {
   }, [user]);
 
   /**
+   * ISBNから書籍情報を取得する（Rakuten Books API）
+   */
+  const searchRakutenBookAsync = useCallback(async (isbnjan: string): Promise<Book | undefined> => {
+    try {
+      const session = await fetchAuthSession();
+      const token = session?.tokens?.idToken?.toString();
+      const url = `${config.ApiEndpoint}/search-rakuten-book`;
+      const options = {
+        'headers': {
+          'Content-Type': 'application/json',
+          'Authorization': token,
+        },
+      };
+
+      const response = await axios.post(url, {
+        isbnjan: isbnjan
+      }, options);
+
+      if (response.data) {
+        const ret: Book = {
+          username: user?.signInDetails?.loginId ?? '',
+          seqno: -1,
+          author: response.data.Item.author,
+          isbn: response.data.Item.isbn,
+          publisherName: response.data.Item.publisherName,
+          salesDate: response.data.Item.salesDate,
+          title: response.data.Item.title,
+          titleKana: '',
+        }
+
+        return ret;
+      }
+    } catch (error) {
+      console.log("searchRakutenBookAsync ERROR!", error);
+      setIconType("error");
+      setModalMessage("エラーが発生しました");
+      setModalIsOpen(true);
+    }
+  }, [user]);
+
+  /**
    * 書籍を所有しているか確認する
    */
   const checkExistsAsync = useCallback(async (isbn: string): Promise<boolean | undefined> => {
@@ -148,11 +189,21 @@ const ReadBarcode: React.FC = () => {
                 }
               });
             } else {
-              setProceedPhase(2);
-              setModalType("yesNo");
-              setIconType("warn");
-              setModalMessage("書籍が見つかりませんでした。\n手動で登録しますか？");
-              setModalIsOpen(true);
+              // Rakuten Books APIでも探してみる
+              const ret2 = await searchRakutenBookAsync(item.rawValue);
+              if (ret2) {
+                navigate("/book", {
+                  state: {
+                    book: ret2
+                  }
+                });
+              } else {
+                setProceedPhase(2);
+                setModalType("yesNo");
+                setIconType("warn");
+                setModalMessage("書籍が見つかりませんでした。\n手動で登録しますか？");
+                setModalIsOpen(true);
+              }
             }
           }
         }
