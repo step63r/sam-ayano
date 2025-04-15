@@ -12,6 +12,7 @@ import { LoadingOverLay } from "./components/LoadingOverlay";
 
 import Home from './components/Home';
 import ReadBarcode from './components/ReadBarcode';
+import InputIsbnJan from './components/InputIsbnJan';
 import Books from './components/Books';
 import BookDetail from './components/BookDetail';
 import UpdateComplete from './components/UpdateComplete';
@@ -58,6 +59,7 @@ const App: React.FC = () => {
           <Routes>
             <Route path='/' element={<Home />} />
             <Route path='/readBarcode' element={<ReadBarcode />} />
+            <Route path='/inputIsbnJan' element={<InputIsbnJan />} />
             <Route path='/book' element={<BookDetail />} />
             <Route path='/books' element={<Books />} />
             <Route path='/books/:seqno' element={<UpdateBook />} />

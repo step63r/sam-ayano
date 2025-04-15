@@ -1,30 +1,32 @@
-import React, {  useCallback, useContext, useEffect, useState } from "react";
+import React, { useEffect, useState, useContext, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCurrentUser, GetCurrentUserOutput, fetchAuthSession } from "aws-amplify/auth";
-import { Scanner, IDetectedBarcode } from '@yudiel/react-qr-scanner';
-import { LoadingContext } from "../context/LoadingProvider";
+import { Book } from "../types/book";
 import axios from "axios";
 import MessageModal from "./MessageModal";
 
 import config from "../config.json";
+
+import { LoadingContext } from "../context/LoadingProvider";
 
 import {
   Button,
   Divider,
   Grid2 as Grid,
   Stack,
+  TextField,
   Typography
-} from "@mui/material";
-import { Book } from "../types/book";
+} from '@mui/material';
 
 /**
- * バーコード読取画面
+ * ISBN手動入力画面
  * @returns コンポーネント
  */
-const ReadBarcode: React.FC = () => {
+const InputIsbnJan: React.FC = () => {
   const navigate = useNavigate();
   const { setIsLoadingOverlay } = useContext(LoadingContext);
   const [user, setUser] = useState<GetCurrentUserOutput>();
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalType, setModalType] = useState<"none" | "yesNo">("none");
   const [iconType, setIconType] = useState<"none" | "info" | "warn" | "error">("none");
@@ -38,7 +40,7 @@ const ReadBarcode: React.FC = () => {
    */
   useEffect(() => {
     console.log("useEffect[] start");
-
+    
     (async () => {
       const ret = await getCurrentUser();
       if (ret) {
@@ -48,6 +50,17 @@ const ReadBarcode: React.FC = () => {
 
     console.log("useEffect[] end");
   }, []);
+
+  /**
+   * useEffect
+   */
+  useEffect(() => {
+    if (isbn) {
+      setIsButtonDisabled(false);
+    } else {
+      setIsButtonDisabled(true);
+    }
+  }, [isbn]);
 
   /**
    * ISBNから書籍情報を取得する
@@ -162,61 +175,54 @@ const ReadBarcode: React.FC = () => {
     }
   }, [user]);
 
-  /**
-   * バーコードスキャンイベント
-   */
-  const handleScan = useCallback(async (results: IDetectedBarcode[]) => {
+  const handleButtonClick = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    setDisabled(true);
     setIsLoadingOverlay(true);
 
-    if (results.length > 0) {
-      for (const item of results) {
-        if (item.rawValue.startsWith("978") || item.rawValue.startsWith("979")) {
-          console.log(item);
-          setIsbn(item.rawValue);
-          const isExists = await checkExistsAsync(item.rawValue);
-          if (isExists) {
-            setProceedPhase(1);
-            setModalType("yesNo");
-            setIconType("warn");
-            setModalMessage("この書籍は登録済みです。\n続けますか？");
-            setModalIsOpen(true);
-          } else {
-            const ret = await searchOpenBdAsync(item.rawValue);
-            if (ret) {
-              navigate("/book", {
-                state: {
-                  book: ret
-                }
-              });
-            } else {
-              // Rakuten Books APIでも探してみる
-              const ret2 = await searchRakutenBookAsync(item.rawValue);
-              if (ret2) {
-                navigate("/book", {
-                  state: {
-                    book: ret2
-                  }
-                });
-              } else {
-                setProceedPhase(2);
-                setModalType("yesNo");
-                setIconType("warn");
-                setModalMessage("書籍が見つかりませんでした。\n手動で登録しますか？");
-                setModalIsOpen(true);
-              }
-            }
+    const isExists = await checkExistsAsync(isbn);
+    if (isExists) {
+      setProceedPhase(1);
+      setModalType("yesNo");
+      setIconType("warn");
+      setModalMessage("この書籍は登録済みです。\n続けますか？");
+      setModalIsOpen(true);
+    } else {
+      const ret = await searchOpenBdAsync(isbn);
+      if (ret) {
+        navigate("/book", {
+          state: {
+            book: ret
           }
+        });
+      } else {
+        // Rakuten Books APIでも探してみる
+        const ret2 = await searchRakutenBookAsync(isbn);
+        if (ret2) {
+          navigate("/book", {
+            state: {
+              book: ret2
+            }
+          });
+        } else {
+          setProceedPhase(2);
+          setModalType("yesNo");
+          setIconType("warn");
+          setModalMessage("書籍が見つかりませんでした。\n手動で登録しますか？");
+          setModalIsOpen(true);
         }
       }
     }
 
     setIsLoadingOverlay(false);
-  }, [
-    checkExistsAsync,
-    navigate,
-    setIsLoadingOverlay,
-    searchOpenBdAsync,
-    searchRakutenBookAsync]);
+  };
+
+  /**
+   * ISBNが変更されたときのイベントハンドラ
+   * @param e イベント引数
+   */
+  const handleChangeIsbn = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsbn(e.target.value);
+  };
 
   /**
    * モーダルを閉じるイベント
@@ -228,10 +234,6 @@ const ReadBarcode: React.FC = () => {
     navigate('/');
   };
 
-  /**
-   * モーダルのYesイベント
-   * @param e イベント引数
-   */
   const handleYesModal = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     resetModal();
@@ -297,7 +299,7 @@ const ReadBarcode: React.FC = () => {
     e.preventDefault();
     resetModal();
     navigate('/');
-  }
+  };
 
   /**
    * モーダルを非表示（リセット）する
@@ -309,60 +311,31 @@ const ReadBarcode: React.FC = () => {
     setModalMessage("");
   };
 
-  /**
-   * 「バーコードが読み取れない場合」ボタン押下イベント
-   * @param e イベント引数
-   */
-  const handleManualInput = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    e.preventDefault();
-    setDisabled(true);
-    navigate('/book');
-  };
-
-  /**
-   * 「ISBNを手動で入力する」ボタン押下イベント
-   * @param e イベント引数
-   */
-  const handleInputIsbnJan = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    e.preventDefault();
-    setDisabled(true);
-    navigate('/inputIsbnJan');
-  };
-
   return (
-    <>
-      <Grid margin={2} paddingBottom={2}>
-        <Stack spacing={2} direction='column'>
-          <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
-            バーコードを読み取ってください
-          </Typography>
-          <Divider />
-          <Scanner
-            onScan={handleScan}
-            formats={['ean_13']}
-            components={{
-              audio: false,
-            }}
-          />
-          <Button fullWidth disabled={disabled} variant="text" onClick={handleManualInput}>
-            バーコードが読み取れない場合
-          </Button>
-          <Button fullWidth disabled={disabled} variant="text" onClick={handleInputIsbnJan}>
-            ISBNを手動で入力する
-          </Button>
-        </Stack>
-        <MessageModal
-          isOpen={modalIsOpen}
-          iconType={iconType}
-          modalType={modalType}
-          message={modalMessage}
-          handleClose={handleCloseModal}
-          handleYes={handleYesModal}
-          handleNo={handleNoModal}
+    <Grid margin={2} paddingBottom={2}>
+      <Stack spacing={2} direction='column'>
+        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
+          ISBNを入力してください
+        </Typography>
+        <Divider />
+        <TextField required id='formIsbn' label='ISBN'
+          error={isbn === ''}
+          value={isbn} onChange={handleChangeIsbn}
         />
-      </Grid>
-    </>
+        <Button fullWidth disabled={disabled || isButtonDisabled} variant='contained' onClick={handleButtonClick}>次へ</Button>
+        <Button fullWidth disabled={disabled} variant='outlined' onClick={() => navigate('/')}>ホームに戻る</Button>
+      </Stack>
+      <MessageModal
+        isOpen={modalIsOpen}
+        iconType={iconType}
+        modalType={modalType}
+        message={modalMessage}
+        handleClose={handleCloseModal}
+        handleYes={handleYesModal}
+        handleNo={handleNoModal}
+      />
+    </Grid>
   );
-}
+};
 
-export default ReadBarcode;
+export default InputIsbnJan;
