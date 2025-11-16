@@ -4,10 +4,11 @@ import { AccountSettings, Divider } from "@aws-amplify/ui-react";
 import MessageModal from "./MessageModal";
 
 import {
-  Grid2 as Grid,
   Stack,
   Typography,
 } from '@mui/material';
+
+import ResponsiveLayout from './ResponsiveLayout';
 import { ChangePasswordComponents } from "@aws-amplify/ui-react/dist/types/components/AccountSettings/ChangePassword/types";
 
 const ChangePassword: React.FC = () => {
@@ -73,7 +74,7 @@ const ChangePassword: React.FC = () => {
   };
 
   return (
-    <Grid margin={2} paddingBottom={2}>
+    <ResponsiveLayout>
       <Stack spacing={2} direction="column">
         <Typography variant="subtitle1" component="div" sx={{ textAlign: 'center' }}>
           パスワード変更
@@ -92,7 +93,7 @@ const ChangePassword: React.FC = () => {
           handleClose={handleCloseModal}
         />
       </Stack>
-    </Grid>
+    </ResponsiveLayout>
   );
 };
 

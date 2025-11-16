@@ -12,11 +12,12 @@ import { LoadingContext } from "../context/LoadingProvider";
 import {
   Button,
   Divider,
-  Grid2 as Grid,
   Stack,
   TextField,
   Typography
 } from '@mui/material';
+
+import ResponsiveLayout from './ResponsiveLayout';
 
 import * as AutoKana from "vanilla-autokana";
 
@@ -200,7 +201,7 @@ const BookDetail: React.FC = () => {
   };
 
   return (
-    <Grid margin={2} paddingBottom={2}>
+    <ResponsiveLayout>
       <Stack spacing={2} direction='column'>
         <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
           書籍の情報を確認・修正してください
@@ -236,7 +237,7 @@ const BookDetail: React.FC = () => {
         message={modalMessage}
         handleClose={handleCloseModal}
       />
-    </Grid>
+    </ResponsiveLayout>
   );
 }
 

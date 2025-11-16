@@ -12,11 +12,12 @@ import { LoadingContext } from "../context/LoadingProvider";
 import {
   Button,
   Divider,
-  Grid2 as Grid,
   Stack,
   TextField,
   Typography
 } from '@mui/material';
+
+import ResponsiveLayout from './ResponsiveLayout';
 
 /**
  * ISBN手動入力画面
@@ -312,7 +313,7 @@ const InputIsbnJan: React.FC = () => {
   };
 
   return (
-    <Grid margin={2} paddingBottom={2}>
+    <ResponsiveLayout>
       <Stack spacing={2} direction='column'>
         <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
           ISBNを入力してください
@@ -333,7 +334,7 @@ const InputIsbnJan: React.FC = () => {
         handleYes={handleYesModal}
         handleNo={handleNoModal}
       />
-    </Grid>
+    </ResponsiveLayout>
   );
 };
 

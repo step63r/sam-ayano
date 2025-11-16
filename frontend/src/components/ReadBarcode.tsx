@@ -11,10 +11,11 @@ import config from "../config.json";
 import {
   Button,
   Divider,
-  Grid2 as Grid,
   Stack,
   Typography
-} from "@mui/material";
+} from '@mui/material';
+
+import ResponsiveLayout from './ResponsiveLayout';
 import { Book } from "../types/book";
 
 /**
@@ -331,7 +332,7 @@ const ReadBarcode: React.FC = () => {
 
   return (
     <>
-      <Grid margin={2} paddingBottom={2}>
+      <ResponsiveLayout>
         <Stack spacing={2} direction='column'>
           <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
             バーコードを読み取ってください
@@ -360,7 +361,7 @@ const ReadBarcode: React.FC = () => {
           handleYes={handleYesModal}
           handleNo={handleNoModal}
         />
-      </Grid>
+      </ResponsiveLayout>
     </>
   );
 }

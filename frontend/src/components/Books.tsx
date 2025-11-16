@@ -17,7 +17,6 @@ import BookItem from "./BookItem";
 
 import {
   Divider,
-  Grid2 as Grid,
   Stack,
   Typography,
   InputAdornment,
@@ -29,6 +28,8 @@ import {
   SelectChangeEvent,
   MenuItem,
 } from "@mui/material";
+
+import ResponsiveLayout from './ResponsiveLayout';
 
 import {
   CancelRounded,
@@ -416,7 +417,7 @@ const Books: React.FC = () => {
   };
 
   return (
-    <Grid margin={2} paddingBottom={2}>
+    <ResponsiveLayout>
       <Stack spacing={2} direction='column'>
         <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
           あなたの書籍情報
@@ -491,7 +492,7 @@ const Books: React.FC = () => {
         message={modalMessage}
         handleClose={handleCloseModal}
       />
-    </Grid>
+    </ResponsiveLayout>
   );
 }
 

@@ -4,10 +4,11 @@ import { AccountSettings, Divider } from "@aws-amplify/ui-react";
 import MessageModal from "./MessageModal";
 
 import {
-  Grid2 as Grid,
   Stack,
   Typography,
 } from '@mui/material';
+
+import ResponsiveLayout from './ResponsiveLayout';
 
 import { DeleteUserComponents } from "@aws-amplify/ui-react/dist/types/components/AccountSettings/DeleteUser/types";
 
@@ -63,7 +64,7 @@ const DeleteUser: React.FC = () => {
   };
   
   return (
-    <Grid margin={2} paddingBottom={2}>
+    <ResponsiveLayout>
       <Stack spacing={2} direction="column">
         <Typography variant="subtitle1" component="div" sx={{ textAlign: 'center' }}>
           アカウント削除
@@ -88,7 +89,7 @@ const DeleteUser: React.FC = () => {
           handleClose={handleCloseModal}
         />
       </Stack>
-    </Grid>
+    </ResponsiveLayout>
   );
 };
 

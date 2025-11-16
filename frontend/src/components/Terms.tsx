@@ -2,7 +2,6 @@ import React from "react";
 
 import {
   Divider,
-  Grid2 as Grid,
   List,
   ListItem,
   ListItemText,
@@ -10,13 +9,15 @@ import {
   Typography,
 } from "@mui/material";
 
+import ResponsiveLayout from './ResponsiveLayout';
+
 /**
  * 利用規約
  * @returns コンポーネント
  */
 const Terms: React.FC = () => {
   return (
-    <Grid margin={2} paddingBottom={2}>
+    <ResponsiveLayout>
       <Stack spacing={2} direction="column">
         <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
           利用規約
@@ -719,7 +720,7 @@ const Terms: React.FC = () => {
           以上
         </Typography>
       </Stack>
-    </Grid>
+    </ResponsiveLayout>
   );
 };
 

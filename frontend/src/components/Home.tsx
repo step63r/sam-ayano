@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import '@aws-amplify/ui-react/styles.css';
 import {
   Button,
-  Grid2 as Grid,
   Stack,
 } from '@mui/material';
 import {
@@ -11,6 +10,7 @@ import {
   LibraryBooks,
   Settings
 } from "@mui/icons-material";
+import ResponsiveLayout from './ResponsiveLayout';
 
 /**
  * ホーム画面
@@ -51,13 +51,13 @@ const Home: React.FC = () => {
   };
 
   return (
-    <Grid margin={2} paddingBottom={2}>
+    <ResponsiveLayout>
       <Stack spacing={2} direction='column'>
         <Button fullWidth disabled={disabled} size="large" variant="contained" onClick={handleReadBarcode} startIcon={<Add />}>書籍を登録する</Button>
         <Button fullWidth disabled={disabled} size="large" variant="contained" onClick={handleBooks} startIcon={<LibraryBooks />}>登録済み書籍を見る</Button>
         <Button fullWidth disabled={disabled} size="large" variant="outlined" onClick={handleSettings} startIcon={<Settings />}>アカウント設定</Button>
       </Stack>
-    </Grid>
+    </ResponsiveLayout>
   );
 }
 

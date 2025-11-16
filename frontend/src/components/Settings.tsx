@@ -5,10 +5,11 @@ import { useAuthenticator } from "@aws-amplify/ui-react";
 import {
   Button,
   Divider,
-  Grid2 as Grid,
   Stack,
   Typography
-} from "@mui/material";
+} from '@mui/material';
+
+import ResponsiveLayout from './ResponsiveLayout';
 
 /**
  * 設定画面
@@ -37,7 +38,7 @@ const Settings: React.FC = () => {
   };
   
   return (
-    <Grid margin={2} paddingBottom={2}>
+    <ResponsiveLayout>
       <Stack spacing={2} direction="column">
         <Typography variant="subtitle1" component="div" sx={{ textAlign: 'center' }}>
           アカウント設定
@@ -54,7 +55,7 @@ const Settings: React.FC = () => {
         <Button fullWidth disabled={disabled} variant="outlined" onClick={signOut}>ログアウト</Button>
         <Button fullWidth disabled={disabled} variant="contained" onClick={handleDeleteUser} color="error">アカウント削除</Button>
       </Stack>
-    </Grid>
+    </ResponsiveLayout>
   );
 };
 
