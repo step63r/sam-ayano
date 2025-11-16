@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React, { useContext, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 
 import { translations, withAuthenticator } from '@aws-amplify/ui-react';
 import { I18n } from 'aws-amplify/utils';
@@ -26,6 +26,36 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 
 I18n.putVocabularies(translations);
 I18n.setLanguage('ja');
+
+/**
+ * ルート変更時にスクロール位置をリセットするコンポーネント
+ */
+const ScrollToTop: React.FC = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    // 通常のルート変更時のスクロールリセット
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  useEffect(() => {
+    // ブラウザバック/フォワード時のスクロールリセット
+    const handlePopState = () => {
+      // 少し遅延させてからスクロールリセット（ブラウザの標準動作の後に実行）
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+      }, 0);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  return null;
+};
 
 /**
  * Appコンポーネント
@@ -55,6 +85,7 @@ const App: React.FC = () => {
       <ThemeProvider theme={theme}>
         <LoadingOverLay isLoadingOverlay={isLoadingOverlay} />
         <BrowserRouter>
+          <ScrollToTop />
           <PageHeader />
           <Routes>
             <Route path='/' element={<Home />} />
