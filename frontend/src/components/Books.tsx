@@ -57,7 +57,13 @@ type LastEvaluatedKeyType = {
   /** ユーザー名 */
   username: string,
   /** シーケンス番号 */
-  seqno: number,
+	seqno: number,
+	/** タイトル */
+	title?: string;
+	/** タイトルカナ */
+	titleKana?: string;
+	/** 発売日 */
+	salesDate?: string;
 };
 
 /**

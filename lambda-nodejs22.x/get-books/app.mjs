@@ -38,7 +38,7 @@ export const lambdaHandler = async (event, context) => {
             KeyConditionExpression: "#un = :un",
             ExpressionAttributeNames: { "#un": "username" },
             ExpressionAttributeValues: { ":un": userName },
-            ProjectionExpression: "seqno, author, publisherName, title",
+            ProjectionExpression: "seqno, author, publisherName, title, titleKana, salesDate",
             Limit: pageSize,
             ConsistentRead: true,
         };
@@ -111,8 +111,24 @@ export const lambdaHandler = async (event, context) => {
         // 取得結果がpageSizeより多い場合はスライスする
         if (items.length > pageSize && currentLastEvaluatedKey) {
             items = items.slice(0, pageSize);
-            currentLastEvaluatedKey.username = userName;
-            currentLastEvaluatedKey.seqno = items[items.length - 1].seqno;
+            const lastItem = items[items.length - 1];
+            
+            // LastEvaluatedKeyを正しく構築
+            currentLastEvaluatedKey = {
+                username: userName,
+                seqno: lastItem.seqno
+            };
+            
+            // GSIを使用している場合は、該当するソートキーも追加
+            if (params.sortKeyId === 1 && lastItem.title) {
+                currentLastEvaluatedKey.title = lastItem.title;
+            } else if (params.sortKeyId === 2 && lastItem.titleKana) {
+                currentLastEvaluatedKey.titleKana = lastItem.titleKana;
+            } else if (params.sortKeyId === 3 && lastItem.salesDate) {
+                currentLastEvaluatedKey.salesDate = lastItem.salesDate;
+            }
+            
+            console.log("Constructed LastEvaluatedKey:", currentLastEvaluatedKey);
         }
 
         response = createResponse(200, {
