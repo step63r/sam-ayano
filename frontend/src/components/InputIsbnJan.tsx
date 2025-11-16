@@ -92,6 +92,8 @@ const InputIsbnJan: React.FC = () => {
           salesDate: response.data.summary.pubdate,
           title: response.data.summary.title,
           titleKana: response.data.onix.DescriptiveDetail.TitleDetail.TitleElement.TitleText.collationkey,
+          readFlag: false,
+          note: "",
         }
 
         return ret;
@@ -133,6 +135,8 @@ const InputIsbnJan: React.FC = () => {
           salesDate: response.data.Item.salesDate,
           title: response.data.Item.title,
           titleKana: '',
+          readFlag: false,
+          note: "",
         }
 
         return ret;
@@ -279,6 +283,8 @@ const InputIsbnJan: React.FC = () => {
             salesDate: "",
             title: "",
             titleKana: "",
+            readFlag: false,
+            note: "",
           }
         }
       });

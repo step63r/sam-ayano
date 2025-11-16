@@ -69,13 +69,15 @@ export const lambdaHandler = async (event, context) => {
                     username: userName,
                     seqno: data.seqno,
                 },
-                UpdateExpression: "set #at = :at, #pn = :pn, #sd = :sd, #t = :t, #tk = :tk",
+                UpdateExpression: "set #at = :at, #pn = :pn, #sd = :sd, #t = :t, #tk = :tk, #rf = :rf, #note = :note",
                 ExpressionAttributeNames: {
                     "#at": "author",
                     "#pn": "publisherName",
                     "#sd": "salesDate",
                     "#t": "title",
                     "#tk": "titleKana",
+                    "#rf": "readFlag",
+                    "#note": "note",
                 },
                 ExpressionAttributeValues: {
                     ":at": data.author,
@@ -83,6 +85,8 @@ export const lambdaHandler = async (event, context) => {
                     ":sd": data.salesDate,
                     ":t": data.title,
                     ":tk": data.titleKana,
+                    ":rf": data.readFlag || false,
+                    ":note": data.note || "",
                 }
             });
             const updateResult = await docClient.send(command);
@@ -104,6 +108,8 @@ export const lambdaHandler = async (event, context) => {
                     salesDate: data.salesDate,
                     title: data.title,
                     titleKana: data.titleKana,
+                    readFlag: data.readFlag || false,
+                    note: data.note || "",
                 }
             });
             const putResult = await docClient.send(command);

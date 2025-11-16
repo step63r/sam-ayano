@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import '@aws-amplify/ui-react/styles.css';
 import {
   Button,
-  Stack,
   Grid2 as Grid,
 } from '@mui/material';
 import {

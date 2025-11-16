@@ -18,6 +18,10 @@ export type Book = {
   title: string,
   //** タイトル（カナ） */
   titleKana: string,
+  /** 読んだフラグ */
+  readFlag: boolean,
+  /** 感想 */
+  note: string,
 };
 
 export const initBook: Book = {
@@ -29,6 +33,8 @@ export const initBook: Book = {
   salesDate: '',
   title: '',
   titleKana: '',
+  readFlag: false,
+  note: '',
 };
 
 export type BookSummary = {
