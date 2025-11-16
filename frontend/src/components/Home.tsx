@@ -4,6 +4,7 @@ import '@aws-amplify/ui-react/styles.css';
 import {
   Button,
   Stack,
+  Grid2 as Grid,
 } from '@mui/material';
 import {
   Add,
@@ -52,11 +53,52 @@ const Home: React.FC = () => {
 
   return (
     <ResponsiveLayout>
-      <Stack spacing={2} direction='column'>
-        <Button fullWidth disabled={disabled} size="large" variant="contained" onClick={handleReadBarcode} startIcon={<Add />}>書籍を登録する</Button>
-        <Button fullWidth disabled={disabled} size="large" variant="contained" onClick={handleBooks} startIcon={<LibraryBooks />}>登録済み書籍を見る</Button>
-        <Button fullWidth disabled={disabled} size="large" variant="outlined" onClick={handleSettings} startIcon={<Settings />}>アカウント設定</Button>
-      </Stack>
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <Button 
+            fullWidth 
+            disabled={disabled} 
+            size="large" 
+            variant="contained" 
+            onClick={handleReadBarcode} 
+            startIcon={<Add />}
+            sx={{ 
+              height: { xs: '80px', sm: '90px', md: '100px' },
+              fontSize: { xs: '1.1rem', sm: '1.2rem', md: '1.3rem' }
+            }}
+          >
+            書籍を登録する
+          </Button>
+        </Grid>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <Button 
+            fullWidth 
+            disabled={disabled} 
+            size="large" 
+            variant="contained" 
+            onClick={handleBooks} 
+            startIcon={<LibraryBooks />}
+            sx={{ 
+              height: { xs: '80px', sm: '90px', md: '100px' },
+              fontSize: { xs: '1.1rem', sm: '1.2rem', md: '1.3rem' }
+            }}
+          >
+            登録済み書籍を見る
+          </Button>
+        </Grid>
+        <Grid size={{ xs: 12 }}>
+          <Button 
+            fullWidth 
+            disabled={disabled} 
+            size="large" 
+            variant="outlined" 
+            onClick={handleSettings} 
+            startIcon={<Settings />}
+          >
+            アカウント設定
+          </Button>
+        </Grid>
+      </Grid>
     </ResponsiveLayout>
   );
 }
