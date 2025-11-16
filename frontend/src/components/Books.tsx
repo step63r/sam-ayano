@@ -16,7 +16,9 @@ import {
 import BookItem from "./BookItem";
 
 import {
+  Checkbox,
   Divider,
+  FormControlLabel,
   Stack,
   Typography,
   InputAdornment,
@@ -42,6 +44,12 @@ const PAGE_SIZE = 10;
 /** ソート設定のlocalStorageキー */
 const BOOKS_SORT_SETTINGS_KEY = 'books_sort_settings';
 
+/** 未読フィルター設定のlocalStorageキー */
+const BOOKS_UNREAD_FILTER_KEY = 'books_unread_filter';
+
+/** 検索キーワード設定のlocalStorageキー */
+const BOOKS_SEARCH_KEYWORD_KEY = 'books_search_keyword';
+
 /**
  * LastEvaluatedKey
  */
@@ -66,6 +74,8 @@ type GetBooksAsyncParam = {
   sortKeyId: number,
   /** 降順ソートフラグ */
   desc: boolean,
+  /** 未読フラグ */
+  unreadFlag?: boolean,
 };
 
 /**
@@ -109,6 +119,58 @@ const saveSortSettings = (sortKeyId: number, isDesc: boolean) => {
   }
 };
 
+/**
+ * localStorageから未読フィルター設定を取得
+ */
+const getSavedUnreadFilter = (): boolean => {
+  try {
+    const saved = localStorage.getItem(BOOKS_UNREAD_FILTER_KEY);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (error) {
+    console.log('Failed to load unread filter settings:', error);
+  }
+  return false;
+};
+
+/**
+ * 未読フィルター設定をlocalStorageに保存
+ */
+const saveUnreadFilter = (unreadOnly: boolean) => {
+  try {
+    localStorage.setItem(BOOKS_UNREAD_FILTER_KEY, JSON.stringify(unreadOnly));
+  } catch (error) {
+    console.log('Failed to save unread filter settings:', error);
+  }
+};
+
+/**
+ * localStorageから検索キーワードを取得
+ */
+const getSavedSearchKeyword = (): string => {
+  try {
+    const saved = localStorage.getItem(BOOKS_SEARCH_KEYWORD_KEY);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (error) {
+    console.log('Failed to load search keyword:', error);
+  }
+  return '';
+};
+
+/**
+ * 検索キーワードをlocalStorageに保存
+ */
+const saveSearchKeyword = (keyword: string) => {
+  try {
+    localStorage.setItem(BOOKS_SEARCH_KEYWORD_KEY, JSON.stringify(keyword));
+  } catch (error) {
+    console.log('Failed to save search keyword:', error);
+  }
+};
+
 const Books: React.FC = () => {
   const navigate = useNavigate();
   const { setIsLoadingOverlay } = useContext(LoadingContext);
@@ -116,13 +178,14 @@ const Books: React.FC = () => {
   const [books, setBooks] = useState<BookSummary[]>([]);
   const [lastEvaluatedKey, setLastEvaluatedKey] = useState<LastEvaluatedKeyType>();
   const [lastEvaluatedKeySortContext, setLastEvaluatedKeySortContext] = useState<{sortKeyId: number, isDesc: boolean} | null>(null);
-  const [keyword, setKeyword] = useState("");
+  const [keyword, setKeyword] = useState(getSavedSearchKeyword());
   const [debouncedKeyword] = useDebounce(keyword, 500);
   
   // 保存されたソート設定で初期化
   const savedSettings = getSavedSortSettings();
   const [sortKeyId, setSortKeyId] = useState(savedSettings.sortKeyId);
   const [isDesc, setIsDesc] = useState(savedSettings.isDesc);
+  const [unreadOnly, setUnreadOnly] = useState(getSavedUnreadFilter());
   const [booksCount, setBooksCount] = useState(0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -153,6 +216,7 @@ const Books: React.FC = () => {
         keyword: param.keyword,
         sortKeyId: param.sortKeyId,
         desc: param.desc,
+        unreadFlag: param.unreadFlag,
       }, options);
 
       if (response.data) {
@@ -234,6 +298,7 @@ const Books: React.FC = () => {
           keyword: debouncedKeyword,
           sortKeyId: sortKeyId,
           desc: isDesc,
+          unreadFlag: unreadOnly,
         });
 
         console.log("getBooksAsync result", result);
@@ -255,7 +320,7 @@ const Books: React.FC = () => {
     })();
 
     console.log("useEffect[user, debouncedKeyword, getBooksAsync, isDesc, sortKeyId, setIsLoadingOverlay] end");
-  }, [user, debouncedKeyword, getBooksAsync, isDesc, sortKeyId, setIsLoadingOverlay]);
+  }, [user, debouncedKeyword, getBooksAsync, isDesc, sortKeyId, unreadOnly, setIsLoadingOverlay]);
 
   /**
    * useEffect
@@ -303,10 +368,15 @@ const Books: React.FC = () => {
       keyword: keyword,
       sortKeyId: sortKeyId,
       desc: isDesc,
+      unreadFlag: unreadOnly,
     });
 
     if (result) {
-      setBooks(prevBooks => [...prevBooks, ...result.books]);
+      setBooks(prevBooks => {
+        const existingSeqnos = new Set(prevBooks.map(book => book.seqno));
+        const newBooks = result.books.filter(book => !existingSeqnos.has(book.seqno));
+        return [...prevBooks, ...newBooks];
+      });
       if (result.lastEvaluatedKey) {
         setLastEvaluatedKey(result.lastEvaluatedKey);
         // lastEvaluatedKeyと一緒にソートコンテキストを保存
@@ -319,7 +389,7 @@ const Books: React.FC = () => {
 
     setIsLoadingMore(false);
     console.log("handleLoadMore end");
-  }, [getBooksAsync, isDesc, keyword, lastEvaluatedKey, sortKeyId, isLoadingMore, lastEvaluatedKeySortContext]);
+  }, [getBooksAsync, isDesc, keyword, lastEvaluatedKey, sortKeyId, isLoadingMore, lastEvaluatedKeySortContext, unreadOnly]);
 
   /**
    * 無限スクロール用のIntersectionObserver設定
@@ -382,6 +452,7 @@ const Books: React.FC = () => {
         keyword: debouncedKeyword,
         sortKeyId: newSortKeyId,
         desc: newIsDesc,
+        unreadFlag: unreadOnly,
       });
 
       console.log("getBooksAsync result", result);
@@ -401,7 +472,7 @@ const Books: React.FC = () => {
 
     setIsLoadingOverlay(false);
     console.log("handleChangeSortKey end");
-  }, [debouncedKeyword, getBooksAsync, user, setIsLoadingOverlay]);
+  }, [debouncedKeyword, getBooksAsync, user, setIsLoadingOverlay, unreadOnly]);
 
   /**
    * モーダルを閉じるイベント
@@ -430,7 +501,11 @@ const Books: React.FC = () => {
           fullWidth
           size="small"
           value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
+          onChange={(e) => {
+            const newValue = e.target.value;
+            setKeyword(newValue);
+            saveSearchKeyword(newValue);
+          }}
           slotProps={{
             input: {
               startAdornment: (
@@ -439,7 +514,10 @@ const Books: React.FC = () => {
                 </InputAdornment>
               ),
               endAdornment: (
-                <IconButton onClick={() => setKeyword("")}>
+                <IconButton onClick={() => {
+                  setKeyword("");
+                  saveSearchKeyword("");
+                }}>
                   <CancelRounded />
                 </IconButton>
               )
@@ -461,12 +539,27 @@ const Books: React.FC = () => {
             <MenuItem value={31}>発売日順（新しい順）</MenuItem>
           </Select>
         </FormControl>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={unreadOnly}
+              onChange={(e) => {
+                const newValue = e.target.checked;
+                setUnreadOnly(newValue);
+                saveUnreadFilter(newValue);
+              }}
+              color="primary"
+            />
+          }
+          label="未読のみ表示"
+          sx={{ width: 'fit-content' }}
+        />
         <Typography variant='caption' component='div'>
           合計 {booksCount.toLocaleString()} 冊の書籍
         </Typography>
         <Stack spacing={2} direction='column'>
-          {books?.map((book) => (
-            <BookItem key={book.seqno} book={book} onClick={() => navigate(`/books/${book.seqno}`)} />
+          {books?.map((book, index) => (
+            <BookItem key={`${book.seqno}-${index}`} book={book} onClick={() => navigate(`/books/${book.seqno}`)} />
           ))}
         </Stack>
         {books.length === 0 && (

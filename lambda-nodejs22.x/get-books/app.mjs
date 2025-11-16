@@ -75,7 +75,13 @@ export const lambdaHandler = async (event, context) => {
             commandInput.ExpressionAttributeNames["#publisherName"] = "publisherName";
             commandInput.ExpressionAttributeNames["#title"] = "title";
             commandInput.ExpressionAttributeValues[":keyword"] = params.keyword;
-        }
+		}
+		
+		if (params.unreadFlag) {
+			commandInput.FilterExpression = (commandInput.FilterExpression ? commandInput.FilterExpression + " and " : "") + "#readFlag = :readFlag";
+			commandInput.ExpressionAttributeNames["#readFlag"] = "readFlag";
+			commandInput.ExpressionAttributeValues[":readFlag"] = false;
+		}
 
         let currentLength = 0;
         let currentLastEvaluatedKey = lastEvaluatedKey;

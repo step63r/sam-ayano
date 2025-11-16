@@ -34,6 +34,12 @@ export const lambdaHandler = async (event, context) => {
             .then(r => {
                 console.log("response", r);
                 if (r.data.length == 1) {
+                    // カナから半角スペースと全角スペースをすべて除去する
+                    let titleKana = r.data[0]?.onix.DescriptiveDetail?.TitleDetail?.TitleElement?.TitleText?.collationkey;
+                    if (titleKana) {
+                        titleKana = titleKana.replace(/　/g, "").replace(/ /g, "");
+                        r.data[0].onix.DescriptiveDetail.TitleDetail.TitleElement.TitleText.collationkey = titleKana;
+                    }
                     response = createResponse(200, r.data[0]);
                 } else {
                     response = createResponse(500, { message: "検索結果が1件ではありませんでした。" });
