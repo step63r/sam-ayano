@@ -228,7 +228,6 @@ const BookDetail: React.FC = () => {
           value={book.isbn} onChange={handleChangeIsbn}
         />
         <Button fullWidth disabled={disabled || isButtonDisabled} variant='contained' onClick={handleButtonClick}>登録する</Button>
-        <Button fullWidth disabled={disabled} variant='outlined' onClick={() => navigate('/')}>ホームに戻る</Button>
       </Stack>
       <MessageModal
         isOpen={modalIsOpen}

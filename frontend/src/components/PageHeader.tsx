@@ -9,8 +9,8 @@ import {
   ListItemText,
   Typography
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { Close, Menu } from "@mui/icons-material";
+import { useNavigate, useLocation } from "react-router-dom";
+import { ArrowBack, Close, Menu } from "@mui/icons-material";
 
 /**
  * ナビゲーションボタンの型
@@ -39,7 +39,11 @@ const setNavLinks: Array<NavButton> = [
  */
 const PageHeader: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
+
+  // トップページ以外で戻るボタンを表示
+  const canGoBack = location.pathname !== '/';
 
   /**
    * メニューオープン
@@ -53,6 +57,13 @@ const PageHeader: React.FC = () => {
    */
   const handleDrawerClose = () => {
     setOpen(false);
+  };
+
+  /**
+   * 戻るボタン押下時のイベントハンドラー
+   */
+  const handleGoBack = () => {
+    navigate(-1);
   };
 
   /**
@@ -73,7 +84,22 @@ const PageHeader: React.FC = () => {
       <AppBar component="header" position="sticky" sx={{ top: 0 }}>
         <Container maxWidth="xl">
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Box sx={{ marginTop: 'auto', marginBottom: 'auto' }}>
+            <Box sx={{ marginTop: 'auto', marginBottom: 'auto', display: 'flex', alignItems: 'center' }}>
+              {/* 戻るボタン（小さな画面でのみ表示、トップページ以外） */}
+              {canGoBack && (
+                <ListItemButton 
+                  onClick={handleGoBack} 
+                  sx={{ 
+                    textAlign: 'center', 
+                    display: { xs: 'block', md: 'none' },
+                    minWidth: 'auto',
+                    padding: '4px 8px',
+                    marginRight: 1
+                  }}
+                >
+                  <ArrowBack />
+                </ListItemButton>
+              )}
               <Typography component="h1" variant="h6">ツンドク.com (β版)</Typography>
             </Box>
             <Box>

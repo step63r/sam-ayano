@@ -323,7 +323,6 @@ const InputIsbnJan: React.FC = () => {
           value={isbn} onChange={handleChangeIsbn}
         />
         <Button fullWidth disabled={disabled || isButtonDisabled} variant='contained' onClick={handleButtonClick}>次へ</Button>
-        <Button fullWidth disabled={disabled} variant='outlined' onClick={() => navigate('/')}>ホームに戻る</Button>
       </Stack>
       <MessageModal
         isOpen={modalIsOpen}

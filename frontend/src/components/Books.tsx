@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useCallback } from "react";
+import React, { useEffect, useState, useContext, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDebounce } from "use-debounce";
 import { AuthUser, getCurrentUser, fetchAuthSession } from "aws-amplify/auth";
@@ -16,7 +16,6 @@ import {
 import BookItem from "./BookItem";
 
 import {
-  Button,
   Divider,
   Grid2 as Grid,
   Stack,
@@ -38,6 +37,9 @@ import {
 
 /** 一度にロードするデータ件数 */
 const PAGE_SIZE = 10;
+
+/** ソート設定のlocalStorageキー */
+const BOOKS_SORT_SETTINGS_KEY = 'books_sort_settings';
 
 /**
  * LastEvaluatedKey
@@ -79,21 +81,54 @@ type GetBooksAsyncResponse = {
  * 書籍一覧画面
  * @returns コンポーネント
  */
+/**
+ * localStorageからソート設定を取得
+ */
+const getSavedSortSettings = () => {
+  try {
+    const saved = localStorage.getItem(BOOKS_SORT_SETTINGS_KEY);
+    if (saved) {
+      const { sortKeyId, isDesc } = JSON.parse(saved);
+      return { sortKeyId: sortKeyId || 0, isDesc: isDesc || false };
+    }
+  } catch (error) {
+    console.log('Failed to load sort settings:', error);
+  }
+  return { sortKeyId: 0, isDesc: false };
+};
+
+/**
+ * ソート設定をlocalStorageに保存
+ */
+const saveSortSettings = (sortKeyId: number, isDesc: boolean) => {
+  try {
+    localStorage.setItem(BOOKS_SORT_SETTINGS_KEY, JSON.stringify({ sortKeyId, isDesc }));
+  } catch (error) {
+    console.log('Failed to save sort settings:', error);
+  }
+};
+
 const Books: React.FC = () => {
   const navigate = useNavigate();
   const { setIsLoadingOverlay } = useContext(LoadingContext);
   const [user, setUser] = useState<AuthUser>();
   const [books, setBooks] = useState<BookSummary[]>([]);
   const [lastEvaluatedKey, setLastEvaluatedKey] = useState<LastEvaluatedKeyType>();
+  const [lastEvaluatedKeySortContext, setLastEvaluatedKeySortContext] = useState<{sortKeyId: number, isDesc: boolean} | null>(null);
   const [keyword, setKeyword] = useState("");
   const [debouncedKeyword] = useDebounce(keyword, 500);
-  const [sortKeyId, setSortKeyId] = useState(0);
-  const [isDesc, setIsDesc] = useState(false);
+  
+  // 保存されたソート設定で初期化
+  const savedSettings = getSavedSortSettings();
+  const [sortKeyId, setSortKeyId] = useState(savedSettings.sortKeyId);
+  const [isDesc, setIsDesc] = useState(savedSettings.isDesc);
   const [booksCount, setBooksCount] = useState(0);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalType, setModalType] = useState<"none" | "yesNo">("none");
   const [iconType, setIconType] = useState<"none" | "info" | "warn" | "error">("none");
   const [modalMessage, setModalMessage] = useState("");
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   /**
    * 書籍情報を取得する
@@ -206,8 +241,11 @@ const Books: React.FC = () => {
           setBooks([...result.books]);
           if (result.lastEvaluatedKey) {
             setLastEvaluatedKey(result.lastEvaluatedKey);
+            // 初期データ取得時のソートコンテキストを保存
+            setLastEvaluatedKeySortContext({ sortKeyId, isDesc });
           } else {
             setLastEvaluatedKey(undefined);
+            setLastEvaluatedKeySortContext(null);
           }
         }
       }
@@ -240,11 +278,23 @@ const Books: React.FC = () => {
   }, [user, getBooksCountAsync]);
 
   /**
-   * 「もっと見る」ボタン押下イベント
+   * 追加データ読み込み処理
    */
-  const handleLoadMore = useCallback(async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    console.log("handleLoadMore start");
-    setIsLoadingOverlay(true);
+  const handleLoadMore = useCallback(async () => {
+    if (isLoadingMore || !lastEvaluatedKey) return;
+    
+    // ソート設定の整合性をチェック
+    if (lastEvaluatedKeySortContext && 
+        (lastEvaluatedKeySortContext.sortKeyId !== sortKeyId || 
+         lastEvaluatedKeySortContext.isDesc !== isDesc)) {
+      console.log("Sort setting changed, resetting lastEvaluatedKey");
+      setLastEvaluatedKey(undefined);
+      setLastEvaluatedKeySortContext(null);
+      return;
+    }
+    
+    console.log("handleLoadMore start with consistent sort settings");
+    setIsLoadingMore(true);
 
     const result = await getBooksAsync({
       pageSize: PAGE_SIZE,
@@ -255,17 +305,52 @@ const Books: React.FC = () => {
     });
 
     if (result) {
-      setBooks([...books, ...result.books]);
+      setBooks(prevBooks => [...prevBooks, ...result.books]);
       if (result.lastEvaluatedKey) {
         setLastEvaluatedKey(result.lastEvaluatedKey);
+        // lastEvaluatedKeyと一緒にソートコンテキストを保存
+        setLastEvaluatedKeySortContext({ sortKeyId, isDesc });
       } else {
         setLastEvaluatedKey(undefined);
+        setLastEvaluatedKeySortContext(null);
       }
     }
 
-    setIsLoadingOverlay(false);
+    setIsLoadingMore(false);
     console.log("handleLoadMore end");
-  }, [books, getBooksAsync, isDesc, keyword, lastEvaluatedKey, sortKeyId, setIsLoadingOverlay]);
+  }, [getBooksAsync, isDesc, keyword, lastEvaluatedKey, sortKeyId, isLoadingMore, lastEvaluatedKeySortContext]);
+
+  /**
+   * 無限スクロール用のIntersectionObserver設定
+   */
+  useEffect(() => {
+    console.log("useEffect[handleLoadMore] start - IntersectionObserver");
+    
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && lastEvaluatedKey && !isLoadingMore) {
+          console.log("Sentinel intersecting - loading more data");
+          handleLoadMore();
+        }
+      },
+      {
+        root: null,
+        rootMargin: '100px', // 100px手前で読み込み開始
+        threshold: 0.1,
+      }
+    );
+
+    observer.observe(sentinel);
+
+    console.log("useEffect[handleLoadMore] end - IntersectionObserver");
+    return () => {
+      observer.unobserve(sentinel);
+    };
+  }, [handleLoadMore, lastEvaluatedKey, isLoadingMore]);
 
   /**
    * ソート順変更イベント
@@ -279,9 +364,15 @@ const Books: React.FC = () => {
 
       const newSortKeyId = Math.floor(val / 10);
       const newIsDesc = val % 10 === 1 ? true : false;
+      
+      // ソート設定を更新してlocalStorageに保存
       setSortKeyId(newSortKeyId);
       setIsDesc(newIsDesc);
+      saveSortSettings(newSortKeyId, newIsDesc);
 
+      // ソート変更時にlastEvaluatedKeyをリセット
+      setLastEvaluatedKey(undefined);
+      setLastEvaluatedKeySortContext(null);
       setBooks([]);
 
       const result = await getBooksAsync({
@@ -298,8 +389,11 @@ const Books: React.FC = () => {
         setBooks([...result.books]);
         if (result.lastEvaluatedKey) {
           setLastEvaluatedKey(result.lastEvaluatedKey);
+          // 新しいソート設定でのlastEvaluatedKeyコンテキストを保存
+          setLastEvaluatedKeySortContext({ sortKeyId: newSortKeyId, isDesc: newIsDesc });
         } else {
           setLastEvaluatedKey(undefined);
+          setLastEvaluatedKeySortContext(null);
         }
       }
     }
@@ -355,7 +449,7 @@ const Books: React.FC = () => {
           <InputLabel>並び替え</InputLabel>
           <Select
             label="並び替え"
-            defaultValue="0"
+            value={(sortKeyId * 10 + (isDesc ? 1 : 0)).toString()}
             onChange={handleChangeSortKey}
           >
             <MenuItem value={0}>登録順（古い順）</MenuItem>
@@ -374,15 +468,21 @@ const Books: React.FC = () => {
             <BookItem key={book.seqno} book={book} onClick={() => navigate(`/books/${book.seqno}`)} />
           ))}
         </Stack>
-        {lastEvaluatedKey && (
-          <Button fullWidth variant='contained' onClick={handleLoadMore}>もっと見る</Button>
-        )}
         {books.length === 0 && (
           <Typography variant='caption' component='div' sx={{ textAlign: 'center' }}>
             検索結果がありません
           </Typography>
         )}
-        <Button fullWidth variant='outlined' onClick={() => navigate('/')}>ホームに戻る</Button>
+        {/* 無限スクロール用のセンチネル要素 */}
+        {lastEvaluatedKey && (
+          <div ref={sentinelRef} style={{ height: '1px' }} />
+        )}
+        {/* データ読み込み中の表示 */}
+        {isLoadingMore && (
+          <Typography variant='caption' component='div' sx={{ textAlign: 'center', padding: 2 }}>
+            読み込み中...
+          </Typography>
+        )}
       </Stack>
       <MessageModal
         isOpen={modalIsOpen}
