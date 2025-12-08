@@ -55,6 +55,7 @@
 | 書籍一覧画面 | `/books` | 登録済み書籍の一覧表示 |
 | 書籍更新画面 | `/books/:seqno` | 登録済み書籍の編集 |
 | 更新完了画面 | `/updateComplete` | 更新処理完了通知 |
+| 会員証画面 | `/membership` | 会員証QRコードの表示 |
 | 設定画面 | `/settings` | アカウント設定メニュー |
 | パスワード変更画面 | `/settings/changePassword` | パスワード変更 |
 | ユーザー削除画面 | `/settings/deleteUser` | アカウント削除 |

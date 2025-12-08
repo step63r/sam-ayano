@@ -28,6 +28,7 @@ const setNavLinks: Array<NavButton> = [
   { text: "トップ", url: "/" },
   { text: "書籍を登録", url: "/readBarcode" },
   { text: "書籍を検索", url: "/books" },
+  { text: "会員証を提示", url: "/membership" },
   { text: "アカウント設定", url: "/settings" },
   { text: "利用規約", url: "/terms" },
   { text: "プライバシーポリシー", url: "/privacyPolicy" },

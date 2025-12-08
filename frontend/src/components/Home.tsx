@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import {
   Add,
+  CardMembership,
   LibraryBooks,
   Settings
 } from "@mui/icons-material";
@@ -38,6 +39,16 @@ const Home: React.FC = () => {
     e.preventDefault();
     setDisabled(true);
     navigate('/books');
+  };
+
+  /**
+   * 「会員証を提示」ボタン押下イベント
+   * @param e イベント引数
+   */
+  const handleMembership = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+    setDisabled(true);
+    navigate('/membership');
   };
 
   /**
@@ -83,6 +94,22 @@ const Home: React.FC = () => {
             }}
           >
             登録済み書籍を見る
+          </Button>
+        </Grid>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <Button
+            fullWidth
+            disabled={disabled}
+            size="large"
+            variant="contained"
+            onClick={handleMembership}
+            startIcon={<CardMembership />}
+            sx={{ 
+              height: { xs: '80px', sm: '90px', md: '100px' },
+              fontSize: { xs: '1.1rem', sm: '1.2rem', md: '1.3rem' }
+            }}
+          >
+            会員証を提示
           </Button>
         </Grid>
         <Grid size={{ xs: 12 }}>
