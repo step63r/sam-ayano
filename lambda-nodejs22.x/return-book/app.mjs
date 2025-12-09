@@ -33,7 +33,7 @@ export const lambdaHandler = async (event, context) => {
 
     try {
         // DynamoDBの更新
-        const updateCommand = new UpdateCommand({
+        const updateRentalBookCommand = new UpdateCommand({
             TableName: "RentalBook",
             Key: {
                 rental_id: rental_id,
@@ -47,9 +47,28 @@ export const lambdaHandler = async (event, context) => {
                 ":true": true,
                 ":rd": Date.now(),
             },
+            ReturnValues: "ALL_NEW",
         });
-        const updateResult = await docClient.send(updateCommand);
-        console.log(updateResult);
+        const updateRentalBookResult = await docClient.send(updateRentalBookCommand);
+        console.log(updateRentalBookResult);
+
+        // 上記でUpdateしたseqnoのBooksテーブルのlendFlagをfalseに更新
+        const updateBookCommand = new UpdateCommand({
+            TableName: "Books",
+            Key: {
+                username: updateRentalBookResult.Attributes.lender_username,
+                seqno: updateRentalBookResult.Attributes.seqno,
+            },
+            UpdateExpression: "set #lf = :false",
+            ExpressionAttributeNames: {
+                "#lf": "lendFlag",
+            },
+            ExpressionAttributeValues: {
+                ":false": false,
+            },
+        });
+        const updateBookResult = await docClient.send(updateBookCommand);
+        console.log(updateBookResult);
 
         response = createResponse(200, { message: "OK" });
     } catch (error) {

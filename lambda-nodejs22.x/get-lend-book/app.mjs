@@ -50,10 +50,10 @@ export const lambdaHandler = async (event, context) => {
         const queryResult = await docClient.send(queryCommand);
         console.log(queryResult);
 
-        // queryResultのItemから最初に見つかったlend_flagがfalseの項目をgetResultとする
+        // queryResultのItemから最初に見つかったlendFlagがfalseの項目をgetResultとする
         let item = null;
         for (const i of queryResult.Items) {
-            if (i.readFlag === undefined || i.readFlag === false) {
+            if (i.lendFlag === undefined || i.lendFlag === false) {
                 item = i;
                 break;
             }

@@ -79,10 +79,10 @@ export const lambdaHandler = async (event, context) => {
         const queryResult = await docClient.send(queryCommand);
         console.log(queryResult);
 
-        // queryResultのItemから最初に見つかったlend_flagがfalseの項目をgetResultとする
+        // queryResultのItemから最初に見つかったlendFlagがfalseの項目をgetResultとする
         let item = null;
         for (const i of queryResult.Items) {
-            if (i.readFlag === undefined || i.readFlag === false) {
+            if (i.lendFlag === undefined || i.lendFlag === false) {
                 item = i;
                 break;
             }
@@ -113,6 +113,24 @@ export const lambdaHandler = async (event, context) => {
         });
         const putResult = await docClient.send(putCommand);
         console.log(putResult);
+
+        // 書籍の貸出フラグを更新
+        const updateCommand = new UpdateCommand({
+            TableName: "Books",
+            Key: {
+                "username": lender_username,
+                "seqno": item.seqno,
+            },
+            UpdateExpression: "set #lf = :true",
+            ExpressionAttributeNames: {
+                "#lf": "lendFlag",
+            },
+            ExpressionAttributeValues: {
+                ":true": true,
+            },
+        });
+        const updateResult = await docClient.send(updateCommand);
+        console.log(updateResult);
 
         response = createResponse(200, { message: "OK" });
     } catch (error) {
