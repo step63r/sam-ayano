@@ -25,7 +25,7 @@ template_file = "c:\\Users\\step6\\Documents\\repos\\sam-ayano\\lambda-nodejs22.
 dependency_layer = false
 
   [default.sync.parameters.parameter_overrides]
-  RAKUTENAPPLICATIONID = "1068366729131324402"
+RAKUTENAPPLICATIONID = "1068366729131324402"
 
 [default.local_start_api.parameters]
 warm_containers = "EAGER"

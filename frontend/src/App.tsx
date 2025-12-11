@@ -24,6 +24,9 @@ import DeleteUser from './components/DeleteUser';
 import Terms from './components/Terms';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import Membership from './components/Membership';
+import ReadMembershipQR from './components/ReadMembershipQR';
+import ReadLendBarcode from './components/ReadLendBarcode';
+import LendComplete from './components/LendComplete';
 
 I18n.putVocabularies(translations);
 I18n.setLanguage('ja');
@@ -102,6 +105,9 @@ const App: React.FC = () => {
             <Route path='/terms' element={<Terms />} />
             <Route path='/privacyPolicy' element={<PrivacyPolicy />} />
             <Route path='/membership' element={<Membership />} />
+            <Route path='/lend/readQR' element={<ReadMembershipQR />} />
+            <Route path='/lend/readBarcode' element={<ReadLendBarcode />} />
+            <Route path='/lend/complete' element={<LendComplete />} />
           </Routes>
         </BrowserRouter>
       </ThemeProvider>

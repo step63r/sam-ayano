@@ -9,6 +9,7 @@ import {
   Add,
   CardMembership,
   LibraryBooks,
+  Forward,
   Settings
 } from "@mui/icons-material";
 import ResponsiveLayout from './ResponsiveLayout';
@@ -49,6 +50,16 @@ const Home: React.FC = () => {
     e.preventDefault();
     setDisabled(true);
     navigate('/membership');
+  };
+
+  /**
+   * 「貸出処理」ボタン押下イベント
+   * @param e イベント引数
+   */
+  const handleLend = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+    setDisabled(true);
+    navigate('/lend/readQR');
   };
 
   /**
@@ -110,6 +121,22 @@ const Home: React.FC = () => {
             }}
           >
             会員証を提示
+          </Button>
+        </Grid>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <Button
+            fullWidth
+            disabled={disabled}
+            size="large"
+            variant="contained"
+            onClick={handleLend}
+            startIcon={<Forward />}
+            sx={{
+              height: { xs: '80px', sm: '90px', md: '100px' },
+              fontSize: { xs: '1.1rem', sm: '1.2rem', md: '1.3rem' }
+            }}
+          >
+            貸出処理
           </Button>
         </Grid>
         <Grid size={{ xs: 12 }}>

@@ -38,7 +38,7 @@ export const lambdaHandler = async (event, context) => {
             KeyConditionExpression: "#un = :un",
             ExpressionAttributeNames: { "#un": "username" },
             ExpressionAttributeValues: { ":un": userName },
-            ProjectionExpression: "seqno, author, publisherName, title, titleKana, salesDate",
+            ProjectionExpression: "seqno, author, publisherName, title, titleKana, salesDate, lendFlag",
             Limit: pageSize,
             ConsistentRead: true,
         };

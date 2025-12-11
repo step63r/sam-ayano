@@ -22,6 +22,14 @@ export type Book = {
   readFlag: boolean,
   /** 感想 */
   note: string,
+  /** 貸出中フラグ */
+  lendFlag?: boolean,
+  /** 貸出ID */
+  rentalId?: number,
+  /** 貸出中ユーザー名 */
+  renterUsername?: string,
+  /** 貸出日時 */
+  rentalDate?: number,
 };
 
 export const initBook: Book = {
@@ -35,6 +43,10 @@ export const initBook: Book = {
   titleKana: '',
   readFlag: false,
   note: '',
+  lendFlag: false,
+  rentalId: 0,
+  renterUsername: '',
+  rentalDate: 0,
 };
 
 export type BookSummary = {
@@ -46,6 +58,8 @@ export type BookSummary = {
   publisherName: string,
   /** タイトル */
   title: string,
+  /** 貸出中フラグ */
+  lendFlag?: boolean,
 }
 
 export const initBookSummary: BookSummary = {
@@ -53,6 +67,7 @@ export const initBookSummary: BookSummary = {
   author: '',
   publisherName: '',
   title: '',
+  lendFlag: false,
 };
 
 export type BooksLastEvaluatedKey = {

@@ -51,6 +51,7 @@ const UpdateBook: React.FC = () => {
   );
   const [modalMessage, setModalMessage] = useState("");
   const autoKana = useRef<AutoKana.AutoKana>(null);
+  const [proceedPhase, setProceedPhase] = useState(0);
 
   /**
    * 書籍情報を取得する
@@ -173,6 +174,43 @@ const UpdateBook: React.FC = () => {
       }
     },
     [user]
+  );
+
+  /**
+   * 書籍を返却する
+   */
+  const returnBookAsync = useCallback(
+    async (item: Book): Promise<boolean> => {
+      try {
+        const session = await fetchAuthSession();
+        const token = session?.tokens?.idToken?.toString();
+        const url = `${config.ApiEndpoint}/return-book`;
+        const options = {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+          },
+        };
+
+        await axios.post(
+          url,
+          {
+            rental_id: item.rentalId,
+          },
+          options
+        );
+
+        return true;
+      } catch (error) {
+        console.log("returnBookAsync ERROR!", error);
+        setModalType("none");
+        setIconType("error");
+        setModalMessage("エラーが発生しました");
+        setModalIsOpen(true);
+        return false;
+      }
+    },
+    []
   );
 
   /**
@@ -344,9 +382,25 @@ const UpdateBook: React.FC = () => {
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
     e.preventDefault();
+    setProceedPhase(1);
     setModalType("yesNo");
     setIconType("info");
     setModalMessage("この書籍を削除しますか？");
+    setModalIsOpen(true);
+  };
+
+  /**
+   * 「返却する」ボタン押下イベント
+   * @param e イベント引数
+   */
+  const handleReturnButtonClick = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
+    e.preventDefault();
+    setProceedPhase(2);
+    setModalType("yesNo");
+    setIconType("info");
+    setModalMessage("この書籍を返却しますか？");
     setModalIsOpen(true);
   };
 
@@ -371,14 +425,42 @@ const UpdateBook: React.FC = () => {
     e.preventDefault();
     resetModal();
 
-    setIsLoadingOverlay(true);
+    // 「この書籍を削除しますか？」がYesの場合
+    if (proceedPhase === 1) {
+      setIsLoadingOverlay(true);
+      const ret = await deleteBookAsync(book);
+      setIsLoadingOverlay(false);
+      if (ret) {
+        navigate("/books", { replace: true });
+      }
 
-    const ret = await deleteBookAsync(book);
+    // 「この書籍を返却しますか？」がYesの場合
+    } else if (proceedPhase === 2) {
+      setIsLoadingOverlay(true);
+      const ret = await returnBookAsync(book);
+      setIsLoadingOverlay(false);
+      if (ret) {
+        // 返却後、最新の書籍情報を取得して状態更新（貸出表示を即時非表示）
+        const result = await getBookAsync(Number(seqno));
+        if (result) {
+          setBook(result);
+        } else {
+          // 取得に失敗した場合は最低限の状態を更新して貸出表示を消す
+          setBook({
+            ...book,
+            lendFlag: false,
+            renterUsername: undefined,
+            rentalDate: undefined,
+          });
+        }
+      }
 
-    setIsLoadingOverlay(false);
-
-    if (ret) {
-      navigate("/books", { replace: true });
+    // それ以外の場合（想定外）
+    } else {
+      console.log("handleYesModal ERROR! invalid proceedPhase");
+      setIconType("error");
+      setModalMessage("エラーが発生しました");
+      setModalIsOpen(true);
     }
   };
 
@@ -400,6 +482,21 @@ const UpdateBook: React.FC = () => {
     setIconType("none");
     setModalMessage("");
   };
+
+  /**
+   * エポック時間をYYYY/MM/DD HH:MM形式に変換する
+   * @param epoc エポック時間
+   * @returns フォーマット文字列
+   */
+  const formatEpocToYMDHM = (epoc: number): string => {
+    const date = new Date(epoc);
+    const year = date.getFullYear();
+    const month = ("0" + (date.getMonth() + 1)).slice(-2);
+    const day = ("0" + date.getDate()).slice(-2);
+    const hours = ("0" + date.getHours()).slice(-2);
+    const minutes = ("0" + date.getMinutes()).slice(-2);
+    return `${year}/${month}/${day} ${hours}:${minutes}`;
+  }
 
   return (
     <ResponsiveLayout>
@@ -455,6 +552,29 @@ const UpdateBook: React.FC = () => {
           value={book.isbn}
           onChange={handleChangeIsbn}
         />
+        {book.lendFlag && (
+          <>
+            <TextField
+              id="formRenter"
+              label="貸出中ユーザー"
+              disabled={true}
+              value={book.renterUsername ?? "不明"}
+            />
+            <TextField
+              id="formRentalDate"
+              label="貸出日時"
+              disabled={true}
+              value={formatEpocToYMDHM(book.rentalDate ?? 0)}
+            />
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={handleReturnButtonClick}
+            >
+              返却する
+            </Button>
+          </>
+        )}
         <FormControlLabel
           control={
             <Checkbox
@@ -487,8 +607,9 @@ const UpdateBook: React.FC = () => {
           variant="outlined"
           color="error"
           onClick={handleDeleteButtonClick}
+          disabled={book?.lendFlag ?? false}
         >
-          削除する
+          {book?.lendFlag ?? false ? "貸出中のため削除できません" : "削除する"}
         </Button>
         <Button fullWidth variant="outlined" onClick={() => navigate("/books")}>
           一覧に戻る

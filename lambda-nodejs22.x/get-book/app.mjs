@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 
 const dynamodbClient = new DynamoDBClient({
     region: 'ap-northeast-1',
@@ -30,6 +30,7 @@ export const lambdaHandler = async (event, context) => {
     const { userName, seqno } = JSON.parse(event.body);
 
     let response = {};
+    let item = {};
 
     try {
         const command = new GetCommand({
@@ -42,8 +43,34 @@ export const lambdaHandler = async (event, context) => {
 
         const getResult = await docClient.send(command);
         console.log(getResult);
+
+        item = { ...getResult.Item };
+        
+        if (getResult?.Item?.lendFlag) {
+            const queryCommand = new QueryCommand({
+                TableName: "RentalBook",
+                IndexName: "lender-seqno-index",
+                KeyConditionExpression: "#lun = :lun and #seqno = :seqno",
+                ExpressionAttributeNames: {
+                    "#lun": "lender_username",
+                    "#seqno": "seqno"
+                },
+                ExpressionAttributeValues: {
+                    ":lun": userName,
+                    ":seqno": seqno
+                },
+                ProjectionExpression: "rental_id, renter_username, rental_date",
+                Limit: 1,
+            });
+            const queryResult = await docClient.send(queryCommand);
+            console.log("queryResult", queryResult);
+            item.rentalId = queryResult.Items[0]?.rental_id;
+            item.renterUsername = queryResult.Items[0]?.renter_username || "";
+            item.rentalDate = queryResult.Items[0]?.rental_date || 0;
+        }
+
         response = createResponse(200, {
-            items: getResult?.Item,
+            items: item,
         });
     } catch (error) {
         console.log("error", error);

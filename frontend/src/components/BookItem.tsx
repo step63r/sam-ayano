@@ -6,7 +6,8 @@ import {
   CardActionArea,
   CardContent,
   Stack,
-  Typography
+  Typography,
+  Box
 } from "@mui/material";
 import {
   BusinessRounded,
@@ -31,7 +32,28 @@ type BookItemProps = {
  */
 const BookItem: React.FC<BookItemProps> = ({ book, onClick }) => {
   return (
-    <Card>
+    <Card sx={{ position: 'relative' }}>
+      {book.lendFlag && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            bgcolor: 'error.light',
+            color: 'error.contrastText',
+            border: '1px solid',
+            borderColor: 'error.main',
+            borderRadius: 1,
+            px: 1,
+            py: 0.25,
+            boxShadow: 1,
+          }}
+        >
+          <Typography variant="caption" sx={{ fontWeight: 600 }}>
+            貸出中
+          </Typography>
+        </Box>
+      )}
       <CardActionArea onClick={onClick}>
         <CardContent sx={{ padding: 0.25 }}>
           <Stack direction='column' margin={2} spacing={1}>
@@ -40,12 +62,14 @@ const BookItem: React.FC<BookItemProps> = ({ book, onClick }) => {
               <Typography
                 variant="subtitle1"
                 sx={{
+                  pr: book.lendFlag ? 8 : 0,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   display: "-webkit-box",
                   WebkitLineClamp: "2",
                   WebkitBoxOrient: "vertical",
-                }}>
+                }}
+              >
                 {book.title}
               </Typography>
             </Stack>
