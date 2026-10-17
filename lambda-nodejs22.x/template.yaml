@@ -85,6 +85,8 @@ Resources:
           LoggingLevel: "INFO"
           DataTraceEnabled: true
           MetricsEnabled: true
+          ThrottlingBurstLimit: 10
+          ThrottlingRateLimit: 5
       Auth:
         DefaultAuthorizer: CognitoAuthorizer
         AddDefaultAuthorizerToCorsPreflight: false
