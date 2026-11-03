@@ -1,6 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, DeleteCommand } from "@aws-sdk/lib-dynamodb";
-import { getUserName } from "./auth.mjs";
+import { createHandler } from "./handler.mjs";
 
 const dynamodbClient = new DynamoDBClient({
     region: 'ap-northeast-1',
@@ -9,51 +9,11 @@ const dynamodbClient = new DynamoDBClient({
 const docClient = DynamoDBDocumentClient.from(dynamodbClient);
 
 /**
- * レスポンスオブジェクトを生成する
- * @param {number} statusCode ステータスコード
- * @param {*} body 
- * @returns レスポンスオブジェクト
+ * DynamoDB を使った保存先。コマンドの生成と送信だけを担当し、処理の判断は handler.mjs に置く
+ * （SDK なしでテストできるようにするため）
  */
-const createResponse = (statusCode, body) => {
-    return {
-        statusCode: statusCode,
-        body: JSON.stringify(body),
-        headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST",
-            "Access-Control-Allow-Headers": "Content-Type,X-CSRF-TOKEN,Authorization",
-        },
-    };
+const store = {
+    delete: (input) => docClient.send(new DeleteCommand(input)),
 };
 
-export const lambdaHandler = async (event, context) => {
-    console.log("event", event);
-    const userName = getUserName(event);
-    if (!userName) {
-        return createResponse(401, { message: "認証情報を取得できませんでした" });
-    }
-    const { seqno } = JSON.parse(event.body);
-
-    let response = {};
-
-    try {
-        const command = new DeleteCommand({
-            TableName: "Books",
-            Key: {
-                "username": userName,
-                "seqno": seqno
-            },
-        });
-
-        const deleteResult = await docClient.send(command);
-        console.log(deleteResult);
-        response = createResponse(200, {
-            result: true,
-        });
-    } catch (error) {
-        console.log("error", error);
-        response = createResponse(500, error);
-    }
-
-    return response;
-};
+export const lambdaHandler = createHandler({ store });

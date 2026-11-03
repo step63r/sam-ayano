@@ -1,5 +1,4 @@
-// 実行: node --test search-rakuten-book/tests/unit/rakuten.test.mjs
-// （この Lambda の package.json の test は mocha の雛形のままのため、node:test で単体で実行する）
+// 実行: npm test（各 Lambda のディレクトリで）
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { SEARCH_URL, buildRequest, describeUpstreamError, normalizeIsbnJan, normalizeReferer, pickSingleItem } from "../../rakuten.mjs";
