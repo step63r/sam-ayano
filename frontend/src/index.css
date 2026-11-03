@@ -276,10 +276,11 @@
 }
 
 /*
- * MUI の CssBaseline は body に Roboto を指定する（レイヤー外）ため、レイヤー内の font-sans では負けて
- * 日本語が Noto Sans JP にならない。レイヤー外かつ詳細度を上げて書く。MUI を撤去したら不要。
+ * Amplify UI の styles.css は html に独自のフォント(Inter)を指定していて、amplify レイヤーは base より後ろにあるため、
+ * base の font-sans(@layer base の html)では負けてしまい、日本語が Noto Sans JP にならない。
+ * レイヤー外に書くと、どのレイヤーよりも優先される。
  */
-html body {
+html {
     font-family: var(--app-font-sans);
 }
 

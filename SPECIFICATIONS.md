@@ -19,12 +19,15 @@
 ## 2. 技術仕様
 
 ### 2.1 フロントエンド技術スタック
-- **フレームワーク**: React 19.0.0 with TypeScript 4.9.5
-- **UIライブラリ**: Material-UI 6.4.6
-- **ルーティング**: React Router 6.x
-- **認証**: AWS Amplify UI React 6.9.2
+- **フレームワーク**: React 19.0.0 with TypeScript 5.9
+- **UI**: Tailwind CSS 4 + shadcn/ui（Radix UI ベース）。アイコンは lucide-react、フォントは Noto Sans JP（`@fontsource-variable/noto-sans-jp`）
+  - 「Liquid Glass」風のデザインは、`src/index.css` の CSS 変数とユーティリティ（`glass`、`glass-soft`、`glass-strong`、`glass-panel`、`glass-backdrop`）で表現する
+  - ライト/ダークは `next-themes`（`.dark` クラス）で切り替える。配色は CSS 変数で一元管理し、Amplify UI の配色もこの変数につなぐ（`AmplifyThemeScope`）
+  - Amplify UI の CSS は、Tailwind のクラスを打ち消さないよう、専用の CSS レイヤー（`amplify`）に入れて読み込む
+- **ルーティング**: React Router 7.x
+- **認証**: AWS Amplify 6.x（`aws-amplify`）+ Amplify UI React 6.9.2（`Authenticator`）
 - **バーコード読取**: @yudiel/react-qr-scanner 2.1.0
-- **ビルドツール**: React Scripts 5.0.1
+- **ビルドツール**: Vite 8（出力先は従来どおり `build/`）
 - **状態管理**: React Context API
 
 ### 2.2 バックエンド技術スタック
@@ -218,19 +221,24 @@
 ## 6. UI/UX仕様
 
 ### 6.1 レスポンシブデザイン
-- **ブレークポイント**: Material-UI標準ブレークポイントを使用
-  - xs: 0px以上（スマートフォン）
-  - sm: 576px以上（タブレット小）
-  - md: 768px以上（タブレット大）
-  - lg: 992px以上（デスクトップ）
-  - xl: 1200px以上（大型デスクトップ）
+- **ブレークポイント**: Tailwind CSS 標準のブレークポイントを使用
+  - 未指定: 0px以上（スマートフォン）
+  - sm: 640px以上
+  - md: 768px以上（ナビゲーションの切り替え点）
+  - lg: 1024px以上（デスクトップ）
+  - xl: 1280px以上（大型デスクトップ）
 
 ### 6.2 マージン設計
-- **ResponsiveLayoutコンポーネント**による統一マージン
-  - xs: 16px, sm: 24px, md: 32px, lg: 64px, xl: 96px
+- **ResponsiveLayoutコンポーネント**による統一マージン（左右）
+  - 未指定: 16px, sm: 24px, md: 32px, lg: 64px, xl: 96px
+  - 最大幅: lg 以上で 1200px、xl 以上で 1400px
 
 ### 6.3 ナビゲーション
 - **PageHeaderコンポーネント**による統一ヘッダー
+  - md 以上: 上部のガラスのヘッダーにメニューを並べる（トップ、書籍を登録、書籍を検索、会員証を提示、その他）
+  - md 未満: 上部にタイトルバー（戻るボタン付き）、下部にタブバー（トップ、登録、一覧、会員証、その他）を表示する
+  - 「その他」には、アカウント設定、利用規約、プライバシーポリシーが入る
+- **テーマ切替**: ヘッダーのボタンで、ライト / ダーク / システム設定を切り替える（選択は `localStorage` に保存）
 - **自動スクロールリセット**: 画面遷移時に自動的にページトップへスクロール
 - **戻るボタン**: モバイル画面でのみ表示（md未満）
 

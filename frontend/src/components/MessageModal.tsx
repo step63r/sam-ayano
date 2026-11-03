@@ -58,8 +58,7 @@ const MessageModal: React.FC<MessageModalProps> = (
     // Radix 標準の自動クローズを使うと、Yes/No ボタン押下時に handleClose まで走ってしまうため
     <AlertDialog open={isOpen}>
       <AlertDialogContent
-        // 呼び出し側のハンドラは e.preventDefault() を呼ぶため、Esc 時にもイベントを渡す。
-        // 旧実装(react-modal)も onRequestClose にキーボードイベントを渡していた
+        // 呼び出し側のハンドラは e.preventDefault() を呼ぶため、Esc 時にもイベントを渡す
         onEscapeKeyDown={(e) => {
           e.preventDefault();
           handleClose?.(e as unknown as React.MouseEvent<HTMLButtonElement>);

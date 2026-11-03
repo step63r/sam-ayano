@@ -1,46 +1,36 @@
-# Getting Started with Create React App
+# ツンドク.com フロントエンド
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React + TypeScript の SPA です。ビルドツールは Vite、UI は Tailwind CSS と shadcn/ui を使っています。
+システム全体の仕様は、リポジトリ直下の `SPECIFICATIONS.md` を参照してください。
 
-## Available Scripts
+## 準備
 
-In the project directory, you can run:
+`src/config.json`（git では追跡されません）が必要です。次の 3 つの値を入れてください。
 
-### `npm start`
+```json
+{
+  "CognitoUserPoolId": "<ユーザープールID>",
+  "CognitoClientId": "<アプリクライアントID>",
+  "ApiEndpoint": "<API Gateway の URL（末尾のスラッシュなし）>"
+}
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## スクリプト
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+`frontend` ディレクトリで実行します。
 
-### `npm test`
+| コマンド | 内容 |
+|---|---|
+| `npm start`（または `npm run dev`） | 開発サーバーを起動します（<http://localhost:3000>）。 |
+| `npm run build` | 型チェック（`tsc --noEmit`）のあと、本番用にビルドして `build/` に出力します。S3 には、この `build/` の中身を配置します。 |
+| `npm run preview` | ビルドした `build/` を、ローカルで確認します。 |
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 構成
 
-### `npm run build`
+| 場所 | 内容 |
+|---|---|
+| `src/components/` | 画面と部品。`ui/` は shadcn/ui の部品です。 |
+| `src/lib/` | 同意 API や書影の取得など、画面に依存しない処理です。 |
+| `src/index.css` | 配色（CSS 変数）と、ガラス表現のユーティリティです。 |
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+規約（`Terms.tsx`、`PrivacyPolicy.tsx`）の本文を変更したときは、バックエンドの規約バージョンも更新する必要があります。手順は `SPECIFICATIONS.md` の「利用規約・プライバシーポリシーを改定するとき」を参照してください。
