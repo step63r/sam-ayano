@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- ブラウザのアドレスバーなどの色。アプリの背景(ライト/ダーク)に合わせる -->
+    <meta name="theme-color" content="#f0f5fd" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#080d1a" media="(prefers-color-scheme: dark)" />
+    <meta
+      name="description"
+      content="ツンドク.comはお手元の書籍を簡単にデータベース化して管理できるサービスです。"
+    />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <!--
+      CSR のため next-themes の初期化は React の描画後になり、ダーク設定の人に一瞬ライト表示が出る。
+      それを防ぐため、描画前に同じ判定（localStorage の "theme"）で dark クラスを付ける。
+    -->
+    <script>
+      try {
+        var t = localStorage.getItem('theme');
+        var dark = t === 'dark' || ((!t || t === 'system') && matchMedia('(prefers-color-scheme: dark)').matches);
+        if (dark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    </script>
+    <title>ツンドク.com | 持っている書籍をシンプルに管理</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>

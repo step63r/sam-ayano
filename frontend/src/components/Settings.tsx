@@ -2,14 +2,12 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthenticator } from "@aws-amplify/ui-react";
 
-import {
-  Button,
-  Divider,
-  Stack,
-  Typography
-} from '@mui/material';
+import { KeyRound, LogOut, Mail, Trash2 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 import ResponsiveLayout from './ResponsiveLayout';
+import PageTitle from "./PageTitle";
 
 /**
  * 設定画面
@@ -39,22 +37,34 @@ const Settings: React.FC = () => {
   
   return (
     <ResponsiveLayout>
-      <Stack spacing={2} direction="column">
-        <Typography variant="subtitle1" component="div" sx={{ textAlign: 'center' }}>
-          アカウント設定
-        </Typography>
-        <Divider />
-        <Typography variant="caption" component="div">
-          メールアドレス
-        </Typography>
-        <Typography variant="body1" component="div">
-          { user?.signInDetails?.loginId }
-        </Typography>
-        <Divider />
-        <Button fullWidth disabled={disabled} variant="contained" onClick={handleChangePassword}>パスワード変更</Button>
-        <Button fullWidth disabled={disabled} variant="outlined" onClick={signOut}>ログアウト</Button>
-        <Button fullWidth disabled={disabled} variant="contained" onClick={handleDeleteUser} color="error">アカウント削除</Button>
-      </Stack>
+      <div className="mx-auto w-full max-w-2xl">
+        <PageTitle title="アカウント設定" />
+        <div className="flex flex-col gap-4">
+          <section aria-label="メールアドレス" className="glass flex items-center gap-4 rounded-3xl p-5">
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+              <Mail className="size-6" aria-hidden />
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm text-muted-foreground">メールアドレス</p>
+              <p className="truncate text-base font-medium">{ user?.signInDetails?.loginId }</p>
+            </div>
+          </section>
+          <div className="glass flex flex-col gap-3 rounded-3xl p-5">
+            <Button size="lg" className="w-full" disabled={disabled} onClick={handleChangePassword}>
+              <KeyRound /> パスワード変更
+            </Button>
+            <Button variant="outline" size="lg" className="w-full" disabled={disabled} onClick={signOut}>
+              <LogOut /> ログアウト
+            </Button>
+          </div>
+          {/* 取り消せない操作は、他の操作と離して配置する */}
+          <div className="glass flex flex-col gap-3 rounded-3xl p-5">
+            <Button variant="destructive" size="lg" className="w-full" disabled={disabled} onClick={handleDeleteUser}>
+              <Trash2 /> アカウント削除
+            </Button>
+          </div>
+        </div>
+      </div>
     </ResponsiveLayout>
   );
 };

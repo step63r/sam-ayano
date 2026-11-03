@@ -1,0 +1,12 @@
+{
+  "name": "consent",
+  "version": "1.0.0",
+  "description": "Terms and privacy policy consent API.",
+  "main": "app.mjs",
+  "type": "module",
+  "author": "SAM CLI",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test \"tests/unit/**/*.test.mjs\""
+  }
+}

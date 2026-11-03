@@ -1,15 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AccountSettings, Divider } from "@aws-amplify/ui-react";
+import { AccountSettings } from "@aws-amplify/ui-react";
 import MessageModal from "./MessageModal";
 
-import {
-  Stack,
-  Typography,
-} from '@mui/material';
-
 import ResponsiveLayout from './ResponsiveLayout';
-import { ChangePasswordComponents } from "@aws-amplify/ui-react/dist/types/components/AccountSettings/ChangePassword/types";
+import PageTitle from "./PageTitle";
+import AmplifyThemeScope from "./AmplifyThemeScope";
+
+// パッケージの exports に無い dist/types/... への深い import は moduleResolution: "bundler" で解決できないため、公開コンポーネントの props から導出する
+type ChangePasswordComponents = NonNullable<
+  React.ComponentProps<typeof AccountSettings.ChangePassword>["components"]
+>;
 
 const ChangePassword: React.FC = () => {
   const navigate = useNavigate();
@@ -75,16 +76,17 @@ const ChangePassword: React.FC = () => {
 
   return (
     <ResponsiveLayout>
-      <Stack spacing={2} direction="column">
-        <Typography variant="subtitle1" component="div" sx={{ textAlign: 'center' }}>
-          パスワード変更
-        </Typography>
-        <Divider />
-        <AccountSettings.ChangePassword
-          components={components}
-          onSuccess={handleSuccessChangePassword}
-          onError={handleErrorChangePassword}
-        />
+      <div className="mx-auto w-full max-w-2xl">
+        <PageTitle title="パスワード変更" />
+        <div className="glass rounded-3xl p-5 md:p-8">
+          <AmplifyThemeScope>
+            <AccountSettings.ChangePassword
+              components={components}
+              onSuccess={handleSuccessChangePassword}
+              onError={handleErrorChangePassword}
+            />
+          </AmplifyThemeScope>
+        </div>
         <MessageModal
           isOpen={modalIsOpen}
           iconType={iconType}
@@ -92,7 +94,7 @@ const ChangePassword: React.FC = () => {
           message={modalMessage}
           handleClose={handleCloseModal}
         />
-      </Stack>
+      </div>
     </ResponsiveLayout>
   );
 };

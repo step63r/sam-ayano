@@ -1,6 +1,8 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "ツンドク",
+  "name": "ツンドク.com",
+  "description": "お手元の書籍を簡単にデータベース化して管理できるサービスです。",
+  "lang": "ja",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +22,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#f0f5fd",
+  "background_color": "#f0f5fd"
 }

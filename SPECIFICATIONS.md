@@ -19,12 +19,15 @@
 ## 2. 技術仕様
 
 ### 2.1 フロントエンド技術スタック
-- **フレームワーク**: React 19.0.0 with TypeScript 4.9.5
-- **UIライブラリ**: Material-UI 6.4.6
-- **ルーティング**: React Router 6.x
-- **認証**: AWS Amplify UI React 6.9.2
+- **フレームワーク**: React 19.0.0 with TypeScript 5.9
+- **UI**: Tailwind CSS 4 + shadcn/ui（Radix UI ベース）。アイコンは lucide-react、フォントは Noto Sans JP（`@fontsource-variable/noto-sans-jp`）
+  - 「Liquid Glass」風のデザインは、`src/index.css` の CSS 変数とユーティリティ（`glass`、`glass-soft`、`glass-strong`、`glass-panel`、`glass-backdrop`）で表現する
+  - ライト/ダークは `next-themes`（`.dark` クラス）で切り替える。配色は CSS 変数で一元管理し、Amplify UI の配色もこの変数につなぐ（`AmplifyThemeScope`）
+  - Amplify UI の CSS は、Tailwind のクラスを打ち消さないよう、専用の CSS レイヤー（`amplify`）に入れて読み込む
+- **ルーティング**: React Router 7.x
+- **認証**: AWS Amplify 6.x（`aws-amplify`）+ Amplify UI React 6.9.2（`Authenticator`）
 - **バーコード読取**: @yudiel/react-qr-scanner 2.1.0
-- **ビルドツール**: React Scripts 5.0.1
+- **ビルドツール**: Vite 8（出力先は従来どおり `build/`）
 - **状態管理**: React Context API
 
 ### 2.2 バックエンド技術スタック
@@ -69,6 +72,8 @@
 - **手動入力**: ISBN/JANコードの手動入力
 - **重複チェック**: 既存書籍との重複を自動検出
 - **書籍情報取得**: openBD API・楽天Books APIから書籍情報を自動取得
+- **書影の取得**: 書籍情報と一緒に書影のURLを取得して登録する。openBD は書影（`summary.cover`）を持たない本が多いため、openBD に書影が無い場合だけ楽天Books（`largeImageUrl`、無ければ `mediumImageUrl`）で補う。書影が取得できなくても、登録は止めない。書影の画像そのものは保存せず、URL だけを保存する（https の URL のみ受け付ける）
+- **書影の後からの取得**: 書影を保存する前に登録した本には書影が無い。書籍の詳細画面で、書影が無く ISBN がある本に限り「表紙を取得」ボタンを出し、押すと ISBN から書影を探して保存する（openBD を先に、無ければ楽天Books）。保存は、`update-books` の書影だけの更新（`data.coverOnly: true`）で行い、タイトルなど他の項目には触れない（画面にまだ保存していない編集内容があっても影響しない）。楽天 API の間隔制限が厳しいと報告されているため、一括処理はせず、押された本の分だけ取得する
 - **情報編集**: タイトル、著者、出版社、発売日の手動編集
 - **読書管理**: 読んだフラグ、感想の登録
 
@@ -87,8 +92,10 @@
 - **読書記録**: 読了フラグの切り替え、感想の記録
 
 #### 3.2.4 認証・アカウント管理
-- **ユーザー登録**: AWS Amplify UI によるサインアップ
-- **ログイン**: AWS Cognito認証
+- **ユーザー登録**: AWS Amplify の `Authenticator` によるサインアップ。登録画面に利用規約・プライバシーポリシーの本文を表示し、同意のチェックを入れないと登録できない
+- **ログイン**: AWS Cognito認証（画面の見た目は `AuthGate` で差し替え、認証の処理は Amplify の `Authenticator` を使う）
+- **規約への同意・再同意**: ログイン後、現在の規約バージョンに同意していないユーザーには、同意するまで本体の画面を表示せず、同意画面（`ConsentGate` / `ConsentPage`）を出す。規約を改定してバージョンを更新すると、既存の全ユーザーに再同意を求められる。同意状況の取得に失敗した場合は、全員がログインできなくなるのを避けるため、利用を許可する（次回のログインで再確認される）
+  - 新規登録画面で同意したユーザーには、初回ログイン直後に同じ同意を再度求めない。登録直後は未認証で同意を記録できないため、登録成功時にメールアドレスと時刻を `localStorage`（`tsundoku.signupConsent`）に控え、初回ログイン時に自動で記録する。控えの有効期間は 24 時間（Cognito の確認コードの有効期間に合わせている）
 - **パスワード変更**: AWS Amplify UI によるパスワード変更
 - **アカウント削除**: ユーザーアカウントの完全削除
 
@@ -114,12 +121,28 @@
 | titleKana | String | 書籍タイトル（カナ） |
 | readFlag | Boolean | 読了フラグ（true: 読了、false: 未読） |
 | note | String | 感想・メモ |
+| coverUrl | String | 書影のURL（任意）。登録時に取得できた場合だけ保存する。更新では変更しないため、登録時の値が残る。書影を保存する前に登録した本には無い |
 
 **グローバルセカンダリインデックス（GSI）**
 - **isbn-index**: isbn をキーとするインデックス
 - **title-index**: username + title をキーとするソートインデックス
 - **titleKana-index**: username + titleKana をキーとするソートインデックス
 - **salesDate-index**: username + salesDate をキーとするソートインデックス
+
+#### 4.1.2 ConsentTable テーブル（規約への同意記録）
+`template.yaml` で作成する（`sam deploy` で作成され、手動作成は不要）。同意の履歴（いつ・どの版に同意したか）をすべて残すため、1 ユーザーにつき規約バージョンごとに 1 行を持つ。法的な証跡になるため、スタックを削除・置換しても消えないよう `DeletionPolicy: Retain` を指定し、ポイントインタイムリカバリを有効にしている。
+
+**プライマリキー**
+- **パーティションキー**: `userId` (String) - Cognito の `sub`（JWT から取得）
+- **ソートキー**: `termsVersion` (String) - 規約バージョン（改定日、例: `2026-11-03`）
+
+**属性**
+| 属性名 | 型 | 説明 |
+|--------|----|----|
+| userId | String | ユーザーID（Cognito の `sub`） |
+| termsVersion | String | 同意した規約バージョン |
+| agreedAt | String | 同意した日時（ISO 8601）。同意済みの行は上書きしないため、最初の同意日時が残る |
+| email | String | 同意時のメールアドレス（JWT の値。無い場合は保存しない） |
 
 ## 5. API仕様
 
@@ -134,6 +157,8 @@
 | POST | `/get-book` | 単一書籍の詳細取得 |
 | POST | `/get-books-count` | 登録書籍数の取得 |
 | POST | `/delete-book` | 書籍の削除 |
+| POST | `/get-consent-status` | 現在の規約バージョンへの同意状況の取得 |
+| POST | `/record-consent` | 現在の規約バージョンへの同意の記録 |
 
 ### 5.2 認証
 すべてのAPIエンドポイントは Amazon Cognito JWT Token による認証が必要。
@@ -164,29 +189,56 @@
       "seqno": "number",
       "author": "string",
       "publisherName": "string",
-      "title": "string"
+      "title": "string",
+      "readFlag": "boolean",
+      "coverUrl": "string（書影が無い本には含まれない）"
     }
   ],
   "lastEvaluatedKey": "object"
 }
 ```
+`titleKana`、`salesDate`、`lendFlag` も返す。`readFlag` と `coverUrl` は、一覧に読了バッジと書影を出すために返している。タイトル順・発売日順の並び替えでは GSI を検索するため、これらを返すには、各 GSI の `ProjectionType` が `ALL`（または `readFlag`・`coverUrl` を含む）である必要がある。
+
+#### 5.3.2 規約への同意 API
+**エンドポイント**: `POST /get-consent-status`、`POST /record-consent`（どちらも同じ Lambda `consent` が処理する）
+
+**リクエスト**: 本文は不要（送られても参照しない）。ユーザーは認証トークン（JWT）の `sub` から特定する。他の API のように、本文の `userName` は使わない。
+
+**レスポンス**（2 つの API で共通）
+```json
+{
+  "currentVersion": "2026-11-03",
+  "mustAgree": true,
+  "agreedAt": "2026-11-04T01:02:03.000Z"
+}
+```
+- `currentVersion`: サーバー側で管理する現在の規約バージョン（`lambda-nodejs22.x/consent/handler.mjs` の `CURRENT_TERMS_VERSION`）
+- `mustAgree`: 現在のバージョンへの同意が必要か。そのバージョンの同意記録が無ければ `true`
+- `agreedAt`: 現在のバージョンに同意した日時。未同意の場合は含まれない
+
+`/record-consent` は、バージョンをリクエストから受け取らず、常にサーバー側の現在のバージョンで記録する。すでに同意済みの場合は何もせず、最初の同意日時を返す（二重送信や再試行で、同意日時が上書きされない）。
 
 ## 6. UI/UX仕様
 
 ### 6.1 レスポンシブデザイン
-- **ブレークポイント**: Material-UI標準ブレークポイントを使用
-  - xs: 0px以上（スマートフォン）
-  - sm: 576px以上（タブレット小）
-  - md: 768px以上（タブレット大）
-  - lg: 992px以上（デスクトップ）
-  - xl: 1200px以上（大型デスクトップ）
+- **ブレークポイント**: Tailwind CSS 標準のブレークポイントを使用
+  - 未指定: 0px以上（スマートフォン）
+  - sm: 640px以上
+  - md: 768px以上（ナビゲーションの切り替え点）
+  - lg: 1024px以上（デスクトップ）
+  - xl: 1280px以上（大型デスクトップ）
 
 ### 6.2 マージン設計
-- **ResponsiveLayoutコンポーネント**による統一マージン
-  - xs: 16px, sm: 24px, md: 32px, lg: 64px, xl: 96px
+- **ResponsiveLayoutコンポーネント**による統一マージン（左右）
+  - 未指定: 16px, sm: 24px, md: 32px, lg: 64px, xl: 96px
+  - 最大幅: lg 以上で 1200px、xl 以上で 1400px
 
 ### 6.3 ナビゲーション
 - **PageHeaderコンポーネント**による統一ヘッダー
+  - md 以上: 上部のガラスのヘッダーにメニューを並べる（トップ、書籍を登録、書籍を検索、会員証を提示、その他）
+  - md 未満: 上部にタイトルバー（戻るボタン付き）、下部にタブバー（トップ、登録、一覧、会員証、その他）を表示する
+  - 「その他」には、アカウント設定、利用規約、プライバシーポリシーが入る
+- **テーマ切替**: ヘッダーのボタンで、ライト / ダーク / システム設定を切り替える（選択は `localStorage` に保存）
 - **自動スクロールリセット**: 画面遷移時に自動的にページトップへスクロール
 - **戻るボタン**: モバイル画面でのみ表示（md未満）
 
@@ -248,7 +300,24 @@
 ### 10.2 バックエンド
 - **デプロイツール**: AWS SAM CLI
 - **設定ファイル**: `template.yaml`
-- **環境変数**: `RAKUTEN_APPLICATION_ID` (楽天APIキー)
+- **環境変数**（`search-rakuten-book` 用。`template.yaml` のパラメーターから渡す。いずれも `NoEcho`）:
+  - `RAKUTEN_APPLICATION_ID`: 楽天のアプリケーションID（UUID形式）
+  - `RAKUTEN_ACCESS_KEY`: 楽天のアクセスキー（`pk_` で始まる）
+  - `RAKUTEN_REFERER`: 楽天の管理画面で「許可されたWebサイト」に登録したURL。**必須**（空だと、楽天が `403 REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING` を返す）。`https://` を省いたホスト名だけの値でも、Lambda が `https://` を補う。**`Referer`（`https://ホスト名/`）と `Origin`（`https://ホスト名`。パスや末尾のスラッシュなし）の両方**を、この値から作って送る（楽天のゲートウェイは、Referer だけでは `REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING` になった。Origin も送るようにして、書影が取得できることを確認済み。公式ドキュメントには記載が無く、Referer と Origin のどちらが効いているかは未確認）。送った値は、失敗時のレスポンスと Lambda のログ（`sentReferer`、`sentOrigin`）に残る。許可サイトと一致しない場合は、別のエラー（`HTTP_REFERRER_NOT_ALLOWED`）になると報告されている
+- **楽天の認証情報の渡し方**: git で追跡される `samconfig.toml` には書かない。追跡されない `samconfig.local.toml`（`lambda-nodejs22.x/` 直下。`.gitignore` 済み）に書いて、`sam deploy --config-file samconfig.local.toml` でデプロイする。`--config-file` を指定すると `samconfig.toml` は読まれないため、スタック名やリージョンなども、このファイルに書く必要がある。例:
+  ```toml
+  version = 0.1
+
+  [default.global.parameters]
+  stack_name = "stack-sam-ayano"
+  region = "ap-northeast-1"
+
+  [default.deploy.parameters]
+  capabilities = [ "CAPABILITY_IAM", "CAPABILITY_NAMED_IAM" ]
+  confirm_changeset = false
+  resolve_s3 = true
+  parameter_overrides = "RAKUTENAPPLICATIONID=<アプリケーションID> RAKUTENACCESSKEY=<アクセスキー> RAKUTENREFERER=<登録したURL>"
+  ```
 
 ### 10.3 必要なAWSリソース
 - CloudFront Distribution
@@ -268,10 +337,24 @@
 
 ### 11.2 外部サービス依存
 - **openBD API**: 書籍情報取得の第一選択肢
-- **楽天Books API**: openBD APIで見つからない場合のフォールバック
+- **楽天Books API**: openBD APIで見つからない場合のフォールバック。また、openBD に書影が無い場合の書影の取得にも使う
+  - エンドポイントは `https://openapi.rakuten.co.jp/services/api/BooksTotal/Search/20170404`。楽天ウェブサービスは 2026 年 2 月に刷新され、旧ドメイン（`app.rakuten.co.jp`）と、旧アカウントで発行された数字のアプリケーションIDは使えなくなった（旧 API は 2026 年 5 月に停止したと報じられている）
+  - 認証には、UUID形式のアプリケーションIDと、アクセスキーの**両方**が必須（楽天ウェブサービスのアプリ登録で取得する）
+  - 呼び出しに失敗した場合、`search-rakuten-book` は上流のステータスとエラー文だけを返す（認証情報を含むため、エラーオブジェクトをそのまま返してはいけない）
 
 ### 11.3 ライセンス
 MIT License
+
+### 11.4 利用規約・プライバシーポリシーを改定するとき
+規約の本文を実質的に変更した場合は、**必ず次の 3 つを行う**。バージョンを更新しないと、既存ユーザーに再同意を求められない。
+
+1. 本文を変更する（`frontend/src/components/Terms.tsx` の `TermsContent`、`PrivacyPolicy.tsx` の `PrivacyPolicyContent`）。新規登録画面・同意画面・各ページは、同じ本文を表示する。
+2. `lambda-nodejs22.x/consent/handler.mjs` の `CURRENT_TERMS_VERSION` を、改定日（`YYYY-MM-DD`）に更新する。
+3. **バックエンド（`sam build && sam deploy`）を先に、フロントエンドを後に**デプロイする。順序が逆だと、同意状況の取得に失敗する間は、利用が許可される（再同意が求められない）。
+
+誤字の修正など、意味を変えない変更では、バージョンを更新しなくてよい（更新すると、全ユーザーに不要な再同意を求めることになる）。
+
+`CURRENT_TERMS_VERSION` を更新してデプロイすると、既存の全ユーザーが、次回の画面表示時（ログイン中のユーザーは、画面を再読み込みしたとき）に同意画面へ誘導される。
 
 ---
 

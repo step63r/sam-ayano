@@ -19,17 +19,16 @@ import config from "../config.json";
 
 import { LoadingContext } from "../context/LoadingProvider";
 
-import {
-  Button,
-  Checkbox,
-  Divider,
-  FormControlLabel,
-  Stack,
-  TextField,
-  Typography
-} from "@mui/material";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 import ResponsiveLayout from "./ResponsiveLayout";
+import PageTitle from "./PageTitle";
+import FormField from "./FormField";
+import BookCover from "./BookCover";
+import CoverFetcher from "./CoverFetcher";
 
 import * as AutoKana from "vanilla-autokana";
 
@@ -360,17 +359,17 @@ const UpdateBook: React.FC = () => {
   
   /**
    * 読んだフラグ変更イベント
-   * @param e イベント引数
+   * @param checked チェック状態
    */
-  const handleChangeReadFlag = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setBook({ ...book, readFlag: e.target.checked });
+  const handleChangeReadFlag = (checked: boolean | "indeterminate") => {
+    setBook({ ...book, readFlag: checked === true });
   };
 
   /**
    * 感想変更イベント
    * @param e イベント引数
    */
-  const handleChangeNote = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeNote = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setBook({ ...book, note: e.target.value });
   };
 
@@ -500,121 +499,132 @@ const UpdateBook: React.FC = () => {
 
   return (
     <ResponsiveLayout>
-      <Stack spacing={2} direction="column">
-        <Typography
-          variant="subtitle1"
-          component="div"
-          sx={{ textAlign: "center" }}
-        >
-          書籍詳細
-        </Typography>
-        <Divider />
-        <TextField
-          required
-          id="formTitle"
-          label="タイトル"
-          error={book.title === ""}
-          value={book.title}
-          onChange={handleChangeTitle}
-        />
-        <TextField
-          required
-          id="formTitleKana"
-          label="タイトル（カナ）"
-          error={book.titleKana === ""}
-          value={book.titleKana}
-          onChange={handleChangeTitleKana}
-        />
-        <TextField
-          id="formAuthor"
-          label="著者"
-          value={book.author}
-          onChange={handleChangeAuthor}
-        />
-        <TextField
-          id="formPublisherName"
-          label="出版社"
-          value={book.publisherName}
-          onChange={handleChangePublisherName}
-        />
-        <TextField
-          required
-          id="formSalesData"
-          label="発売日"
-          error={book.salesDate === ""}
-          value={book.salesDate}
-          onChange={handleChangeSalesDate}
-        />
-        <TextField
-          id="formIsbn"
-          label="ISBN"
-          disabled={true}
-          value={book.isbn}
-          onChange={handleChangeIsbn}
-        />
-        {book.lendFlag && (
-          <>
-            <TextField
-              id="formRenter"
-              label="貸出中ユーザー"
-              disabled={true}
-              value={book.renterUsername ?? "不明"}
-            />
-            <TextField
-              id="formRentalDate"
-              label="貸出日時"
-              disabled={true}
-              value={formatEpocToYMDHM(book.rentalDate ?? 0)}
-            />
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={handleReturnButtonClick}
-            >
-              返却する
-            </Button>
-          </>
-        )}
-        <FormControlLabel
-          control={
+      <div className="mx-auto w-full max-w-2xl">
+        <PageTitle title="書籍詳細" />
+        <div className="glass flex flex-col gap-5 rounded-3xl p-5 md:p-8">
+          {/* 書影が無い本（書影の保存前に登録した本など）には、タイトルの頭文字のプレースホルダを出す。読み込み前は何も出さない */}
+          {(book.coverUrl || book.title) && (
+            <div className="flex flex-col items-center gap-3">
+              <BookCover title={book.title} coverUrl={book.coverUrl} className="w-28 sm:w-32" />
+              {/* 書影が無い本だけに出す。取得して保存できたら、書影が表示されてボタンは消える */}
+              {!book.coverUrl && book.isbn && book.seqno > 0 && user && (
+                <CoverFetcher
+                  seqno={book.seqno}
+                  isbn={book.isbn}
+                  userName={user.signInDetails?.loginId ?? ""}
+                  onFetched={(coverUrl) => setBook((current) => ({ ...current, coverUrl: coverUrl }))}
+                />
+              )}
+            </div>
+          )}
+          <FormField
+            required
+            id="formTitle"
+            label="タイトル"
+            error={book.title === ""}
+            value={book.title}
+            onChange={handleChangeTitle}
+          />
+          <FormField
+            required
+            id="formTitleKana"
+            label="タイトル（カナ）"
+            error={book.titleKana === ""}
+            value={book.titleKana}
+            onChange={handleChangeTitleKana}
+          />
+          <FormField
+            id="formAuthor"
+            label="著者"
+            value={book.author}
+            onChange={handleChangeAuthor}
+          />
+          <FormField
+            id="formPublisherName"
+            label="出版社"
+            value={book.publisherName}
+            onChange={handleChangePublisherName}
+          />
+          <FormField
+            required
+            id="formSalesData"
+            label="発売日"
+            error={book.salesDate === ""}
+            value={book.salesDate}
+            onChange={handleChangeSalesDate}
+          />
+          <FormField
+            id="formIsbn"
+            label="ISBN"
+            disabled={true}
+            value={book.isbn}
+            onChange={handleChangeIsbn}
+          />
+          {book.lendFlag && (
+            <div className="flex flex-col gap-5 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
+              <FormField
+                id="formRenter"
+                label="貸出中ユーザー"
+                disabled={true}
+                value={book.renterUsername ?? "不明"}
+              />
+              <FormField
+                id="formRentalDate"
+                label="貸出日時"
+                disabled={true}
+                value={formatEpocToYMDHM(book.rentalDate ?? 0)}
+              />
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full"
+                onClick={handleReturnButtonClick}
+              >
+                返却する
+              </Button>
+            </div>
+          )}
+          <Label className="w-fit cursor-pointer gap-2 text-base">
             <Checkbox
               checked={book.readFlag}
-              onChange={handleChangeReadFlag}
-              color="primary"
+              onCheckedChange={handleChangeReadFlag}
             />
-          }
-          label="読んだ"
-        />
-        <TextField
-          id='formNote'
-          label='感想'
-          value={book.note}
-          onChange={handleChangeNote}
-          multiline
-          rows={4}
-          placeholder="この本についての感想を入力してください"
-        />
-        <Button
-          fullWidth
-          variant="contained"
-          disabled={isButtonDisabled}
-          onClick={handleButtonClick}
-        >
-          登録する
-        </Button>
-        <Button
-          fullWidth
-          variant="outlined"
-          color="error"
-          onClick={handleDeleteButtonClick}
-          disabled={book?.lendFlag ?? false}
-        >
-          {book?.lendFlag ?? false ? "貸出中のため削除できません" : "削除する"}
-        </Button>
-        <Button fullWidth variant="outlined" onClick={() => navigate("/books")}>
-          一覧に戻る
-        </Button>
-      </Stack>
+            読んだ
+          </Label>
+          <div className="grid gap-2">
+            <Label htmlFor="formNote">感想</Label>
+            <Textarea
+              id="formNote"
+              rows={4}
+              value={book.note}
+              onChange={handleChangeNote}
+              placeholder="この本についての感想を入力してください"
+            />
+          </div>
+          <div className="flex flex-col gap-3">
+            <Button
+              size="lg"
+              className="w-full"
+              disabled={isButtonDisabled}
+              onClick={handleButtonClick}
+            >
+              登録する
+            </Button>
+            <Button
+              variant="destructive"
+              size="lg"
+              className="w-full"
+              onClick={handleDeleteButtonClick}
+              disabled={book?.lendFlag ?? false}
+            >
+              {book?.lendFlag ?? false ? "貸出中のため削除できません" : "削除する"}
+            </Button>
+            <Button variant="outline" size="lg" className="w-full" onClick={() => navigate("/books")}>
+              一覧に戻る
+            </Button>
+          </div>
+        </div>
+      </div>
       <MessageModal
         isOpen={modalIsOpen}
         iconType={iconType}

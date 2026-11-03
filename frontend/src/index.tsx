@@ -1,17 +1,20 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import reportWebVitals from './reportWebVitals';
+
+import './index.css';
 
 import config from './config.json';
 
 import App from './App';
+import AuthGate from './components/AuthGate';
+import ConsentGate from './components/ConsentGate';
 
 import { Amplify } from 'aws-amplify';
 
 import { LoadingProvider } from './context/LoadingProvider';
 import { Authenticator } from '@aws-amplify/ui-react';
 
-import { CssBaseline } from '@mui/material';
+import { ThemeProvider as NextThemesProvider } from 'next-themes';
 
 Amplify.configure({
   Auth: {
@@ -30,17 +33,15 @@ const root = ReactDOM.createRoot(
 );
 
 root.render(
-  <>
-    <CssBaseline />
+  <NextThemesProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
     <Authenticator.Provider>
       <LoadingProvider>
-        <App />
+        <AuthGate>
+          <ConsentGate>
+            <App />
+          </ConsentGate>
+        </AuthGate>
       </LoadingProvider>
     </Authenticator.Provider>
-  </>
+  </NextThemesProvider>
 );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();

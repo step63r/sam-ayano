@@ -9,15 +9,12 @@ import config from "../config.json";
 
 import { LoadingContext } from "../context/LoadingProvider";
 
-import {
-  Button,
-  Divider,
-  Stack,
-  TextField,
-  Typography
-} from '@mui/material';
+import { Button } from "@/components/ui/button";
 
 import ResponsiveLayout from './ResponsiveLayout';
+import PageTitle from "./PageTitle";
+import FormField from "./FormField";
+import BookCover from "./BookCover";
 
 import * as AutoKana from "vanilla-autokana";
 
@@ -102,6 +99,7 @@ const BookDetail: React.FC = () => {
           salesDate: book.salesDate,
           title: book.title,
           titleKana: book.titleKana,
+          coverUrl: book.coverUrl,
         }
       }, options);
 
@@ -202,34 +200,39 @@ const BookDetail: React.FC = () => {
 
   return (
     <ResponsiveLayout>
-      <Stack spacing={2} direction='column'>
-        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
-          書籍の情報を確認・修正してください
-        </Typography>
-        <Divider />
-        <TextField required id='formTitle' label='タイトル'
-          error={book.title === ''}
-          value={book.title} onChange={handleChangeTitle}
-        />
-        <TextField required id='formTitleKana' label='タイトル（カナ）'
-          error={book.titleKana === ''}
-          value={book.titleKana} onChange={handleChangeTitleKana}
-        />
-        <TextField id='formAuthor' label='著者'
-          value={book.author} onChange={handleChangeAuthor}
-        />
-        <TextField id='formPublisherName' label='出版社'
-          value={book.publisherName} onChange={handleChangePublisherName}
-        />
-        <TextField required id='formSalesData' label='発売日'
-          error={book.salesDate === ''}
-          value={book.salesDate} onChange={handleChangeSalesDate}
-        />
-        <TextField id='formIsbn' label='ISBN'
-          value={book.isbn} onChange={handleChangeIsbn}
-        />
-        <Button fullWidth disabled={disabled || isButtonDisabled} variant='contained' onClick={handleButtonClick}>登録する</Button>
-      </Stack>
+      <div className="mx-auto w-full max-w-2xl">
+        <PageTitle title="書籍の情報を確認・修正してください" />
+        <div className="glass flex flex-col gap-5 rounded-3xl p-5 md:p-8">
+          {/* 書影は検索で見つかった場合だけ表示する（手入力の登録では出さない） */}
+          {book.coverUrl && (
+            <div className="flex justify-center">
+              <BookCover title={book.title} coverUrl={book.coverUrl} className="w-28 sm:w-32" />
+            </div>
+          )}
+          <FormField required id='formTitle' label='タイトル'
+            error={book.title === ''}
+            value={book.title} onChange={handleChangeTitle}
+          />
+          <FormField required id='formTitleKana' label='タイトル（カナ）'
+            error={book.titleKana === ''}
+            value={book.titleKana} onChange={handleChangeTitleKana}
+          />
+          <FormField id='formAuthor' label='著者'
+            value={book.author} onChange={handleChangeAuthor}
+          />
+          <FormField id='formPublisherName' label='出版社'
+            value={book.publisherName} onChange={handleChangePublisherName}
+          />
+          <FormField required id='formSalesData' label='発売日'
+            error={book.salesDate === ''}
+            value={book.salesDate} onChange={handleChangeSalesDate}
+          />
+          <FormField id='formIsbn' label='ISBN'
+            value={book.isbn} onChange={handleChangeIsbn}
+          />
+          <Button size="lg" className="w-full" disabled={disabled || isButtonDisabled} onClick={handleButtonClick}>登録する</Button>
+        </div>
+      </div>
       <MessageModal
         isOpen={modalIsOpen}
         iconType={iconType}

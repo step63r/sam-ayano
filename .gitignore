@@ -133,3 +133,6 @@ dist
 
 env.json
 
+
+# SAM のローカル専用設定（楽天の認証情報など、git に入れてはいけない値を書く）
+lambda-nodejs22.x/samconfig.local.toml

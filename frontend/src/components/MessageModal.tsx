@@ -1,19 +1,14 @@
 import React from "react";
-import Modal from "react-modal";
+import { CircleAlert, Info, TriangleAlert } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import {
-  Button,
-  Stack,
-  Typography
-} from "@mui/material";
-
-import {
-  Info,
-  Warning,
-  Error
-} from "@mui/icons-material";
-
-Modal.setAppElement("#root");
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 /**
  * MessageModalコンポーネントのプロパティ
@@ -35,26 +30,12 @@ type MessageModalProps = {
   handleNo?: React.MouseEventHandler<HTMLButtonElement>;
 };
 
-/**
- * 独自のモーダルスタイル定義
- */
-const modalStyles: Modal.Styles = {
-  content: {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    right: "auto",
-    bottom: "auto",
-    transform: "translate(-50%, -50%)",
-    minWidth: "80%",
-    maxWidth: "80%",
-    minHeight: "25%",
-    maxHeight: "80%",
-    padding: "16px",
-  },
-  overlay: {
-    zIndex: 1000
-  },
+/** スクリーンリーダー向けのタイトル（見た目には出さない） */
+const titles: Record<MessageModalProps["iconType"], string> = {
+  none: "メッセージ",
+  info: "お知らせ",
+  warn: "確認",
+  error: "エラー",
 };
 
 /**
@@ -73,34 +54,40 @@ const MessageModal: React.FC<MessageModalProps> = (
     handleNo
   }) => {
   return (
-    <Modal
-      isOpen={isOpen}
-      onRequestClose={handleClose}
-      style={modalStyles}
-      shouldCloseOnOverlayClick={false}
-    >
-      <Stack spacing={2} direction="column">
-        {iconType === "info" && (
-          <Info color="info" sx={{ fontSize: "48px", display: "block", alignSelf: "center" }} />
+    // 開閉は呼び出し側の状態だけで決める（open のみ渡し onOpenChange は渡さない）。
+    // Radix 標準の自動クローズを使うと、Yes/No ボタン押下時に handleClose まで走ってしまうため
+    <AlertDialog open={isOpen}>
+      <AlertDialogContent
+        // 呼び出し側のハンドラは e.preventDefault() を呼ぶため、Esc 時にもイベントを渡す
+        onEscapeKeyDown={(e) => {
+          e.preventDefault();
+          handleClose?.(e as unknown as React.MouseEvent<HTMLButtonElement>);
+        }}
+      >
+        <AlertDialogTitle className="sr-only">{titles[iconType]}</AlertDialogTitle>
+        {iconType !== "none" && (
+          <div className="mx-auto">
+            {iconType === "info" && <Info className="size-12 text-primary" aria-hidden />}
+            {iconType === "warn" && <TriangleAlert className="size-12 text-amber-500" aria-hidden />}
+            {iconType === "error" && <CircleAlert className="size-12 text-destructive" aria-hidden />}
+          </div>
         )}
-        {iconType === "warn" && (
-          <Warning color="warning" sx={{ fontSize: "48px", display: "block", alignSelf: "center" }} />
-        )}
-        {iconType === "error" && (
-          <Error color="error" sx={{ fontSize: "48px", display: "block", alignSelf: "center" }} />
-        )}
-        <Typography variant="subtitle1" sx={{ whiteSpace: 'pre-line' }}>{message}</Typography>
-        {modalType === "none" && (
-          <Button fullWidth variant="contained" onClick={handleClose}>閉じる</Button>
-        )}
-        {modalType === "yesNo" && (
-          <Stack spacing={2} direction="row">
-            <Button fullWidth variant="outlined" onClick={handleNo}>いいえ</Button>
-            <Button fullWidth variant="contained" onClick={handleYes}>はい</Button>
-          </Stack>
-        )}
-      </Stack>
-    </Modal>
+        <AlertDialogDescription className="text-base whitespace-pre-line text-foreground">
+          {message}
+        </AlertDialogDescription>
+        <AlertDialogFooter>
+          {modalType === "none" && (
+            <Button size="lg" className="w-full" onClick={handleClose}>閉じる</Button>
+          )}
+          {modalType === "yesNo" && (
+            <div className="flex w-full gap-3">
+              <Button size="lg" variant="outline" className="flex-1" onClick={handleNo}>いいえ</Button>
+              <Button size="lg" className="flex-1" onClick={handleYes}>はい</Button>
+            </div>
+          )}
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 };
 

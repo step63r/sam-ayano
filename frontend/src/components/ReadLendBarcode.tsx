@@ -8,13 +8,9 @@ import MessageModal from "./MessageModal";
 
 import config from "../config.json";
 
-import {
-  Divider,
-  Stack,
-  Typography
-} from '@mui/material';
-
 import ResponsiveLayout from "./ResponsiveLayout";
+import PageTitle from "./PageTitle";
+import ScannerFrame from "./ScannerFrame";
 import { Book } from "../types/book";
 
 const ReadLendBarcode: React.FC = () => {
@@ -175,19 +171,18 @@ const ReadLendBarcode: React.FC = () => {
 
   return (
     <ResponsiveLayout>
-      <Stack spacing={2} direction='column'>
-        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
-          書籍のバーコードを読み取ってください
-        </Typography>
-        <Divider />
-        <Scanner
-          onScan={handleScan}
-          formats={['ean_13']}
-          components={{
-            audio: false,
-          }}
-        />
-      </Stack>
+      <div className="mx-auto w-full max-w-xl">
+        <PageTitle title="書籍のバーコードを読み取ってください" />
+        <ScannerFrame>
+          <Scanner
+            onScan={handleScan}
+            formats={['ean_13']}
+            components={{
+              audio: false,
+            }}
+          />
+        </ScannerFrame>
+      </div>
       <MessageModal
         isOpen={modalIsOpen}
         iconType={iconType}

@@ -1,5 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, UpdateCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { buildCoverOnlyUpdate, normalizeCoverUrl } from "./cover.mjs";
 
 const dynamodbClient = new DynamoDBClient({
     region: 'ap-northeast-1',
@@ -61,7 +62,16 @@ export const lambdaHandler = async (event, context) => {
     let response = {};
 
     try {
-        if (data.seqno) {
+        if (data.seqno && data.coverOnly) {
+            // 書影だけの更新（詳細画面の「表紙を取得」）。他の項目には触れない
+            const coverUrl = normalizeCoverUrl(data.coverUrl);
+            if (!coverUrl) {
+                return createResponse(400, { message: "書影のURLが正しくありません。" });
+            }
+
+            const coverResult = await docClient.send(new UpdateCommand(buildCoverOnlyUpdate(userName, data.seqno, coverUrl)));
+            console.log(coverResult);
+        } else if (data.seqno) {
             // DynamoDBへの登録
             const command = new UpdateCommand({
                 TableName: "Books",
@@ -96,6 +106,10 @@ export const lambdaHandler = async (event, context) => {
             const seqNo = await getNextSeq("Books", userName);
             console.log("next seq => ", seqNo);
 
+            // 書影URLは任意。検証を通らない値は保存しない。
+            // 更新(上の分岐)では書影を変更しないため、登録時に保存した値がそのまま残る
+            const coverUrl = normalizeCoverUrl(data.coverUrl);
+
             // DynamoDBへの登録
             const command = new PutCommand({
                 TableName: "Books",
@@ -110,6 +124,7 @@ export const lambdaHandler = async (event, context) => {
                     titleKana: data.titleKana,
                     readFlag: data.readFlag || false,
                     note: data.note || "",
+                    ...(coverUrl ? { coverUrl: coverUrl } : {}),
                 }
             });
             const putResult = await docClient.send(command);
