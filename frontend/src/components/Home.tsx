@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import '@aws-amplify/ui-react/styles.css';
 import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
 import axios from "axios";
 import {

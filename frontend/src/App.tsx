@@ -4,7 +4,6 @@ import { useTheme } from 'next-themes';
 
 import { translations, withAuthenticator } from '@aws-amplify/ui-react';
 import { I18n } from 'aws-amplify/utils';
-import '@aws-amplify/ui-react/styles.css';
 
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 

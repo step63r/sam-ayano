@@ -85,6 +85,13 @@ const subNavItems: Array<{ text: string; url: string; isActive: (pathname: strin
 ];
 
 /**
+ * 下部タブバーのタブの見た目。リンク(a)とボタン(button)の両方に使う。
+ * 寸法を決めるクラスを共通にし、h-full/w-full/leading を明示して、要素の種類の違いでタブごとに大きさが変わらないようにする
+ */
+const bottomTabClass =
+  "flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-full px-1 py-1.5 text-[11px] leading-4 font-medium text-muted-foreground transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50";
+
+/**
  * ヘッダーコンポーネント
  * 中幅以上は上部のメニュー、狭い画面は上部のタイトルバーと下部のタブバーで構成する
  * @returns コンポーネント
@@ -167,14 +174,11 @@ const PageHeader: React.FC = () => {
             const active = item.isActive(pathname);
             const Icon = item.icon;
             return (
-              <li key={item.url} className="flex-1">
+              <li key={item.url} className="flex flex-1">
                 <Link
                   to={item.url}
                   aria-current={active ? "page" : undefined}
-                  className={cn(
-                    "flex flex-col items-center gap-0.5 rounded-full px-1 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
-                    active && "bg-primary/15 text-primary"
-                  )}
+                  className={cn(bottomTabClass, active && "bg-primary/15 text-primary")}
                 >
                   <Icon className="size-5" />
                   {item.shortText}
@@ -182,14 +186,11 @@ const PageHeader: React.FC = () => {
               </li>
             );
           })}
-          <li className="flex-1">
+          <li className="flex flex-1">
             <button
               type="button"
               onClick={() => setSheetOpen(true)}
-              className={cn(
-                "flex w-full flex-col items-center gap-0.5 rounded-full px-1 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
-                isSubActive && "bg-primary/15 text-primary"
-              )}
+              className={cn(bottomTabClass, isSubActive && "bg-primary/15 text-primary")}
             >
               <Ellipsis className="size-5" />
               その他

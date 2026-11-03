@@ -1,13 +1,28 @@
+/*
+ * Amplify UI の styles.css は、レイヤー外で input/button/textarea/select に `font: inherit` を、
+ * html にフォントを指定している。レイヤー外の指定はレイヤー内の Tailwind のクラスより常に優先されるため、
+ * そのまま読み込むと text-sm や font-medium などが全 button/input で効かなくなる。
+ * そこで amplify レイヤーに閉じ込め、utilities(クラス)より弱くする。
+ * base(リセット)より後ろに置くのは、Amplify の部品自体の余白や枠が Tailwind のリセットで消えないようにするため。
+ * この宣言は最初のレイヤー宣言でなければ順序が効かないので、必ず先頭に置く。
+ */
+@layer theme, base, amplify, components, utilities;
+
 @import "tailwindcss";
+@import "@aws-amplify/ui-react/styles.css" layer(amplify);
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/noto-sans-jp";
 
 @custom-variant dark (&:is(.dark *));
 
+:root {
+    --app-font-sans: 'Noto Sans JP Variable', ui-sans-serif, system-ui, -apple-system, 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', sans-serif;
+}
+
 @theme inline {
     --font-heading: var(--font-sans);
-    --font-sans: 'Noto Sans JP Variable', ui-sans-serif, system-ui, -apple-system, 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', sans-serif;
+    --font-sans: var(--app-font-sans);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -258,6 +273,14 @@
   html {
     @apply font-sans;
   }
+}
+
+/*
+ * MUI の CssBaseline は body に Roboto を指定する（レイヤー外）ため、レイヤー内の font-sans では負けて
+ * 日本語が Noto Sans JP にならない。レイヤー外かつ詳細度を上げて書く。MUI を撤去したら不要。
+ */
+html body {
+    font-family: var(--app-font-sans);
 }
 
 @media (prefers-reduced-motion: reduce) {
