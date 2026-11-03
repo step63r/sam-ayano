@@ -28,6 +28,7 @@ import ResponsiveLayout from "./ResponsiveLayout";
 import PageTitle from "./PageTitle";
 import FormField from "./FormField";
 import BookCover from "./BookCover";
+import CoverFetcher from "./CoverFetcher";
 
 import * as AutoKana from "vanilla-autokana";
 
@@ -503,8 +504,17 @@ const UpdateBook: React.FC = () => {
         <div className="glass flex flex-col gap-5 rounded-3xl p-5 md:p-8">
           {/* 書影が無い本（書影の保存前に登録した本など）には、タイトルの頭文字のプレースホルダを出す。読み込み前は何も出さない */}
           {(book.coverUrl || book.title) && (
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center gap-3">
               <BookCover title={book.title} coverUrl={book.coverUrl} className="w-28 sm:w-32" />
+              {/* 書影が無い本だけに出す。取得して保存できたら、書影が表示されてボタンは消える */}
+              {!book.coverUrl && book.isbn && book.seqno > 0 && user && (
+                <CoverFetcher
+                  seqno={book.seqno}
+                  isbn={book.isbn}
+                  userName={user.signInDetails?.loginId ?? ""}
+                  onFetched={(coverUrl) => setBook((current) => ({ ...current, coverUrl: coverUrl }))}
+                />
+              )}
             </div>
           )}
           <FormField

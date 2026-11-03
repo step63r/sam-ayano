@@ -1,6 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, UpdateCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
-import { normalizeCoverUrl } from "./cover.mjs";
+import { buildCoverOnlyUpdate, normalizeCoverUrl } from "./cover.mjs";
 
 const dynamodbClient = new DynamoDBClient({
     region: 'ap-northeast-1',
@@ -62,7 +62,16 @@ export const lambdaHandler = async (event, context) => {
     let response = {};
 
     try {
-        if (data.seqno) {
+        if (data.seqno && data.coverOnly) {
+            // 書影だけの更新（詳細画面の「表紙を取得」）。他の項目には触れない
+            const coverUrl = normalizeCoverUrl(data.coverUrl);
+            if (!coverUrl) {
+                return createResponse(400, { message: "書影のURLが正しくありません。" });
+            }
+
+            const coverResult = await docClient.send(new UpdateCommand(buildCoverOnlyUpdate(userName, data.seqno, coverUrl)));
+            console.log(coverResult);
+        } else if (data.seqno) {
             // DynamoDBへの登録
             const command = new UpdateCommand({
                 TableName: "Books",
