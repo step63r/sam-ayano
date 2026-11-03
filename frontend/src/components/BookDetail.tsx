@@ -91,7 +91,6 @@ const BookDetail: React.FC = () => {
       };
 
       await axios.post(url, {
-        userName: user?.signInDetails?.loginId,
         data: {
           author: book.author,
           isbn: book.isbn,

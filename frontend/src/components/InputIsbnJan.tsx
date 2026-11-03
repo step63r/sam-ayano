@@ -169,7 +169,6 @@ const InputIsbnJan: React.FC = () => {
       };
 
       const response = await axios.post(url, {
-        userName: user?.signInDetails?.loginId ?? '',
         isbn: isbn,
       }, options);
 

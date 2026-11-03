@@ -209,7 +209,6 @@ const Books: React.FC = () => {
       const url = `${config.ApiEndpoint}/get-books`;
 
       const response = await axios.post(url, {
-        userName: user?.signInDetails?.loginId ?? '',
         pageSize: param.pageSize,
         lastEvaluatedKey: param.lastEvaluatedKey,
         keyword: param.keyword,
@@ -249,7 +248,6 @@ const Books: React.FC = () => {
       };
 
       const response = await axios.post(url, {
-        userName: user?.signInDetails?.loginId ?? '',
       }, options);
 
       if (response.data) {

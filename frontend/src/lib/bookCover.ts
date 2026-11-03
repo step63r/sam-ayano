@@ -68,18 +68,16 @@ export const findCoverUrl = async (isbnjan: string): Promise<string | undefined>
 
 /**
  * 書影URLだけを保存する。タイトルなど他の項目には触れない（画面にまだ保存していない編集内容があっても影響しない）
- * @param userName ユーザー名
  * @param seqno 書籍のシーケンス番号
  * @param coverUrl 書影URL
  * @returns 保存できたら true
  */
-export const saveCoverUrl = async (userName: string, seqno: number, coverUrl: string): Promise<boolean> => {
+export const saveCoverUrl = async (seqno: number, coverUrl: string): Promise<boolean> => {
   try {
     const session = await fetchAuthSession();
     const token = session?.tokens?.idToken?.toString();
 
     await axios.post(`${config.ApiEndpoint}/update-books`, {
-      userName: userName,
       data: {
         seqno: seqno,
         coverOnly: true,

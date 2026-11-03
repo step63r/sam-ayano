@@ -9,8 +9,6 @@ type CoverFetcherProps = {
   seqno: number;
   /** 書影を探すための ISBN/JANコード */
   isbn: string;
-  /** ユーザー名 */
-  userName: string;
   /** 書影を取得して保存できたときのイベント */
   onFetched: (coverUrl: string) => void;
 };
@@ -22,7 +20,7 @@ type Status = "idle" | "loading" | "notFound" | "saveFailed";
  * 書影を保存する前に登録した本には書影が無いため、1 冊ずつ補うために使う。
  * 楽天の API は、リクエスト間隔の制限が厳しいと報告されているため、まとめて処理せず、押された本の分だけ取得する
  */
-const CoverFetcher: React.FC<CoverFetcherProps> = ({ seqno, isbn, userName, onFetched }) => {
+const CoverFetcher: React.FC<CoverFetcherProps> = ({ seqno, isbn, onFetched }) => {
   const [status, setStatus] = useState<Status>("idle");
 
   /**
@@ -37,7 +35,7 @@ const CoverFetcher: React.FC<CoverFetcherProps> = ({ seqno, isbn, userName, onFe
       return;
     }
 
-    if (!(await saveCoverUrl(userName, seqno, coverUrl))) {
+    if (!(await saveCoverUrl(seqno, coverUrl))) {
       setStatus("saveFailed");
       return;
     }

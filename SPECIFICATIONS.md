@@ -163,6 +163,8 @@
 ### 5.2 認証
 すべてのAPIエンドポイントは Amazon Cognito JWT Token による認証が必要。
 
+書籍・貸出に関する API は、ユーザーを認証済み JWT のクレーム `email`（`event.requestContext.authorizer.claims.email`）から特定する。リクエスト本文の `userName` などは参照しない（他人の名前を指定してデータを操作できてしまうため）。クレームが取得できない場合は 401 を返す。規約への同意 API だけは、`sub` を使う。
+
 ### 5.3 主要API詳細
 
 #### 5.3.1 書籍一覧取得 API
@@ -171,7 +173,6 @@
 **リクエストパラメータ**
 ```json
 {
-  "userName": "string",
   "pageSize": "number",
   "lastEvaluatedKey": "object",
   "keyword": "string",
@@ -202,7 +203,7 @@
 #### 5.3.2 規約への同意 API
 **エンドポイント**: `POST /get-consent-status`、`POST /record-consent`（どちらも同じ Lambda `consent` が処理する）
 
-**リクエスト**: 本文は不要（送られても参照しない）。ユーザーは認証トークン（JWT）の `sub` から特定する。他の API のように、本文の `userName` は使わない。
+**リクエスト**: 本文は不要（送られても参照しない）。ユーザーは認証トークン（JWT）の `sub` から特定する（書籍・貸出の API は `email`）。本文のユーザー名は使わない。
 
 **レスポンス**（2 つの API で共通）
 ```json
@@ -254,7 +255,8 @@
 ### 7.1 認証・認可
 - **AWS Cognito User Pool**による認証
 - **JWT Token**による API アクセス制御
-- **ユーザー単位のデータ分離**: usernameによるマルチテナント設計
+- **ユーザー単位のデータ分離**: usernameによるマルチテナント設計。username は、リクエスト本文ではなく JWT の `email` クレームから取得する
+- **貸出の返却**: `/return-book` は、貸出者本人の未返却の貸出だけを条件付き更新で返却済みにする。他人の貸出・存在しない貸出・返却済みの貸出は、同じ 404 を返す
 
 ### 7.2 API セキュリティ
 - **CORS設定**: 適切なオリジン制限

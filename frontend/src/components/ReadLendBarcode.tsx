@@ -65,7 +65,6 @@ const ReadLendBarcode: React.FC = () => {
       };
 
       const response = await axios.post(url, {
-        userName: user?.signInDetails?.loginId ?? '',
         isbn: isbn,
       }, options);
 
@@ -83,7 +82,7 @@ const ReadLendBarcode: React.FC = () => {
   /**
    * 貸出処理を行う
    */
-  const lendBookAsync = useCallback(async (lender_usename: string, renter_username: string, isbn: string): Promise<boolean | undefined> => {
+  const lendBookAsync = useCallback(async (renter_username: string, isbn: string): Promise<boolean | undefined> => {
     try {
       const session = await fetchAuthSession();
       const token = session?.tokens?.idToken?.toString();
@@ -96,7 +95,6 @@ const ReadLendBarcode: React.FC = () => {
       };
 
       await axios.post(url, {
-        lender_username: lender_usename,
         renter_username: renter_username,
         isbn: isbn,
       }, options);
@@ -125,7 +123,6 @@ const ReadLendBarcode: React.FC = () => {
           const book = await getLendBookAsync(isbn);
           if (book) {
             const ret = await lendBookAsync(
-              user?.signInDetails?.loginId ?? '',
               renterUser,
               isbn
             );

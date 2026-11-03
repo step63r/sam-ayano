@@ -1,5 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { getUserName } from "./auth.mjs";
 
 const dynamodbClient = new DynamoDBClient({
     region: 'ap-northeast-1',
@@ -27,7 +28,11 @@ const createResponse = (statusCode, body) => {
 
 export const lambdaHandler = async (event, context) => {
     console.log("event", event);
-    const { userName, isbn } = JSON.parse(event.body);
+    const userName = getUserName(event);
+    if (!userName) {
+        return createResponse(401, { message: "認証情報を取得できませんでした" });
+    }
+    const { isbn } = JSON.parse(event.body);
 
     let response = {};
 

@@ -71,7 +71,6 @@ const UpdateBook: React.FC = () => {
         const response = await axios.post(
           url,
           {
-            userName: user?.signInDetails?.loginId ?? "",
             seqno: seqno,
           },
           options
@@ -108,7 +107,6 @@ const UpdateBook: React.FC = () => {
         await axios.post(
           url,
           {
-            userName: user?.signInDetails?.loginId ?? "",
             data: {
               seqno: item.seqno,
               author: book.author,
@@ -156,7 +154,6 @@ const UpdateBook: React.FC = () => {
         await axios.post(
           url,
           {
-            userName: user?.signInDetails?.loginId ?? "",
             seqno: item.seqno,
           },
           options
@@ -511,7 +508,6 @@ const UpdateBook: React.FC = () => {
                 <CoverFetcher
                   seqno={book.seqno}
                   isbn={book.isbn}
-                  userName={user.signInDetails?.loginId ?? ""}
                   onFetched={(coverUrl) => setBook((current) => ({ ...current, coverUrl: coverUrl }))}
                 />
               )}

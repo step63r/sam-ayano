@@ -1,6 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, UpdateCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { buildCoverOnlyUpdate, normalizeCoverUrl } from "./cover.mjs";
+import { getUserName } from "./auth.mjs";
 
 const dynamodbClient = new DynamoDBClient({
     region: 'ap-northeast-1',
@@ -57,7 +58,11 @@ const getNextSeq = async (tableName, userName) => {
 
 export const lambdaHandler = async (event, context) => {
     console.log("event", event);
-    const { userName, data } = JSON.parse(event.body);
+    const userName = getUserName(event);
+    if (!userName) {
+        return createResponse(401, { message: "認証情報を取得できませんでした" });
+    }
+    const { data } = JSON.parse(event.body);
 
     let response = {};
 
@@ -79,6 +84,8 @@ export const lambdaHandler = async (event, context) => {
                     username: userName,
                     seqno: data.seqno,
                 },
+                // 存在しない本の行を、不完全な項目として作ってしまわないための歯止め
+                ConditionExpression: "attribute_exists(seqno)",
                 UpdateExpression: "set #at = :at, #pn = :pn, #sd = :sd, #t = :t, #tk = :tk, #rf = :rf, #note = :note",
                 ExpressionAttributeNames: {
                     "#at": "author",

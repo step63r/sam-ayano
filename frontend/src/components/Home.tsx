@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
+import { fetchAuthSession } from "aws-amplify/auth";
 import axios from "axios";
 import {
   ArrowRightLeft,
@@ -91,12 +91,9 @@ const Home: React.FC = () => {
 
     (async () => {
       try {
-        const user = await getCurrentUser();
         const session = await fetchAuthSession();
         const token = session?.tokens?.idToken?.toString();
-        const response = await axios.post(`${config.ApiEndpoint}/get-books-count`, {
-          userName: user?.signInDetails?.loginId ?? '',
-        }, {
+        const response = await axios.post(`${config.ApiEndpoint}/get-books-count`, {}, {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': token,
