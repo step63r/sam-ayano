@@ -1,5 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, UpdateCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { normalizeCoverUrl } from "./cover.mjs";
 
 const dynamodbClient = new DynamoDBClient({
     region: 'ap-northeast-1',
@@ -96,6 +97,10 @@ export const lambdaHandler = async (event, context) => {
             const seqNo = await getNextSeq("Books", userName);
             console.log("next seq => ", seqNo);
 
+            // 書影URLは任意。検証を通らない値は保存しない。
+            // 更新(上の分岐)では書影を変更しないため、登録時に保存した値がそのまま残る
+            const coverUrl = normalizeCoverUrl(data.coverUrl);
+
             // DynamoDBへの登録
             const command = new PutCommand({
                 TableName: "Books",
@@ -110,6 +115,7 @@ export const lambdaHandler = async (event, context) => {
                     titleKana: data.titleKana,
                     readFlag: data.readFlag || false,
                     note: data.note || "",
+                    ...(coverUrl ? { coverUrl: coverUrl } : {}),
                 }
             });
             const putResult = await docClient.send(command);

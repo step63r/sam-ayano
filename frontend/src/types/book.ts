@@ -24,6 +24,8 @@ export type Book = {
   note: string,
   /** 貸出中フラグ */
   lendFlag?: boolean,
+  /** 書影URL（登録時に外部 API から取得できた場合のみ） */
+  coverUrl?: string,
   /** 貸出ID */
   rentalId?: number,
   /** 貸出中ユーザー名 */

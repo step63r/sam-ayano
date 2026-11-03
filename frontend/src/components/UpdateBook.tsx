@@ -27,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import ResponsiveLayout from "./ResponsiveLayout";
 import PageTitle from "./PageTitle";
 import FormField from "./FormField";
+import BookCover from "./BookCover";
 
 import * as AutoKana from "vanilla-autokana";
 
@@ -500,6 +501,12 @@ const UpdateBook: React.FC = () => {
       <div className="mx-auto w-full max-w-2xl">
         <PageTitle title="書籍詳細" />
         <div className="glass flex flex-col gap-5 rounded-3xl p-5 md:p-8">
+          {/* 書影が無い本（書影の保存前に登録した本など）には、タイトルの頭文字のプレースホルダを出す。読み込み前は何も出さない */}
+          {(book.coverUrl || book.title) && (
+            <div className="flex justify-center">
+              <BookCover title={book.title} coverUrl={book.coverUrl} className="w-28 sm:w-32" />
+            </div>
+          )}
           <FormField
             required
             id="formTitle"

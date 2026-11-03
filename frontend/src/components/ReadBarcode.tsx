@@ -7,6 +7,7 @@ import axios from "axios";
 import MessageModal from "./MessageModal";
 
 import config from "../config.json";
+import { findRakutenCoverUrl, normalizeCoverUrl } from "../lib/bookCover";
 
 import { Keyboard, PencilLine } from "lucide-react";
 
@@ -80,6 +81,12 @@ const ReadBarcode: React.FC = () => {
           titleKana: response.data.onix.DescriptiveDetail.TitleDetail.TitleElement.TitleText.collationkey,
           readFlag: false,
           note: "",
+          coverUrl: normalizeCoverUrl(response.data.summary.cover),
+        }
+
+        // openBD は書影を持たない本が多いため、無い場合だけ楽天ブックスで補う（失敗しても登録は続ける）
+        if (!ret.coverUrl) {
+          ret.coverUrl = await findRakutenCoverUrl(isbnjan);
         }
 
         return ret;
@@ -123,6 +130,7 @@ const ReadBarcode: React.FC = () => {
           titleKana: '',
           readFlag: false,
           note: "",
+          coverUrl: normalizeCoverUrl(response.data.Item.largeImageUrl) ?? normalizeCoverUrl(response.data.Item.mediumImageUrl),
         }
 
         return ret;

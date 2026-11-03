@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import ResponsiveLayout from './ResponsiveLayout';
 import PageTitle from "./PageTitle";
 import FormField from "./FormField";
+import BookCover from "./BookCover";
 
 import * as AutoKana from "vanilla-autokana";
 
@@ -98,6 +99,7 @@ const BookDetail: React.FC = () => {
           salesDate: book.salesDate,
           title: book.title,
           titleKana: book.titleKana,
+          coverUrl: book.coverUrl,
         }
       }, options);
 
@@ -201,6 +203,12 @@ const BookDetail: React.FC = () => {
       <div className="mx-auto w-full max-w-2xl">
         <PageTitle title="書籍の情報を確認・修正してください" />
         <div className="glass flex flex-col gap-5 rounded-3xl p-5 md:p-8">
+          {/* 書影は検索で見つかった場合だけ表示する（手入力の登録では出さない） */}
+          {book.coverUrl && (
+            <div className="flex justify-center">
+              <BookCover title={book.title} coverUrl={book.coverUrl} className="w-28 sm:w-32" />
+            </div>
+          )}
           <FormField required id='formTitle' label='タイトル'
             error={book.title === ''}
             value={book.title} onChange={handleChangeTitle}
