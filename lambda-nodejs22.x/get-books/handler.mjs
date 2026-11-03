@@ -72,7 +72,8 @@ export const createHandler = ({ store }) => async (event, context) => {
         }
 
         if (params.keyword) {
-            commandInput.FilterExpression = "contains(#author, :keyword) or contains(#publisherName, :keyword) or contains(#title, :keyword)";
+            // 括弧が無いと、未読の条件と and で連結したときに、and が先に評価され、最後の contains だけが未読の条件と結び付く
+            commandInput.FilterExpression = "(contains(#author, :keyword) or contains(#publisherName, :keyword) or contains(#title, :keyword))";
             commandInput.ExpressionAttributeNames["#author"] = "author";
             commandInput.ExpressionAttributeNames["#publisherName"] = "publisherName";
             commandInput.ExpressionAttributeNames["#title"] = "title";

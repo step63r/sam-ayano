@@ -113,7 +113,7 @@ test("キーワードは、著者・出版社・タイトルの部分一致で�
     await handler(createEvent(USER, { pageSize: 1, keyword: "夏目" }));
 
     const [query] = store.queries;
-    assert.equal(query.FilterExpression, "contains(#author, :keyword) or contains(#publisherName, :keyword) or contains(#title, :keyword)");
+    assert.equal(query.FilterExpression, "(contains(#author, :keyword) or contains(#publisherName, :keyword) or contains(#title, :keyword))");
     assert.equal(query.ExpressionAttributeValues[":keyword"], "夏目");
     assert.deepEqual(
         [query.ExpressionAttributeNames["#author"], query.ExpressionAttributeNames["#publisherName"], query.ExpressionAttributeNames["#title"]],
@@ -133,15 +133,19 @@ test("未読だけを指定すると、readFlag が false の本に絞る", asyn
     assert.equal(query.ExpressionAttributeValues[":readFlag"], false);
 });
 
-test("キーワードと未読を両方指定すると、両方の条件がフィルターに入る", async () => {
+test("キーワードと未読を両方指定すると、キーワードのどれかに一致し、かつ未読の本に絞る", async () => {
     const store = createStore({ Items: [book(1)] });
     const handler = createHandler({ store });
 
     await handler(createEvent(USER, { pageSize: 1, keyword: "夏目", unreadFlag: true }));
 
+    // DynamoDB は and を or より先に評価する。キーワードの or 全体が括弧で囲まれていないと、
+    // 「著者 or 出版社 or (タイトル and 未読)」になり、既読の本も混ざってしまう
     const [query] = store.queries;
-    assert.match(query.FilterExpression, /contains\(#title, :keyword\)/);
-    assert.match(query.FilterExpression, /#readFlag = :readFlag/);
+    assert.equal(
+        query.FilterExpression,
+        "(contains(#author, :keyword) or contains(#publisherName, :keyword) or contains(#title, :keyword)) and #readFlag = :readFlag",
+    );
 });
 
 test("フィルターで件数が足りないときは、ページサイズに達するまで次のページを読む", async () => {
