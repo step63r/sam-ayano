@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 
-import { translations, withAuthenticator } from '@aws-amplify/ui-react';
+import { translations } from '@aws-amplify/ui-react';
 import { I18n } from 'aws-amplify/utils';
 
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
@@ -127,4 +127,4 @@ const App: React.FC = () => {
   );
 }
 
-export default withAuthenticator(App);
+export default App;

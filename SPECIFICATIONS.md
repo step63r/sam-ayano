@@ -87,8 +87,10 @@
 - **読書記録**: 読了フラグの切り替え、感想の記録
 
 #### 3.2.4 認証・アカウント管理
-- **ユーザー登録**: AWS Amplify UI によるサインアップ
-- **ログイン**: AWS Cognito認証
+- **ユーザー登録**: AWS Amplify の `Authenticator` によるサインアップ。登録画面に利用規約・プライバシーポリシーの本文を表示し、同意のチェックを入れないと登録できない
+- **ログイン**: AWS Cognito認証（画面の見た目は `AuthGate` で差し替え、認証の処理は Amplify の `Authenticator` を使う）
+- **規約への同意・再同意**: ログイン後、現在の規約バージョンに同意していないユーザーには、同意するまで本体の画面を表示せず、同意画面（`ConsentGate` / `ConsentPage`）を出す。規約を改定してバージョンを更新すると、既存の全ユーザーに再同意を求められる。同意状況の取得に失敗した場合は、全員がログインできなくなるのを避けるため、利用を許可する（次回のログインで再確認される）
+  - 新規登録画面で同意したユーザーには、初回ログイン直後に同じ同意を再度求めない。登録直後は未認証で同意を記録できないため、登録成功時にメールアドレスと時刻を `localStorage`（`tsundoku.signupConsent`）に控え、初回ログイン時に自動で記録する。控えの有効期間は 24 時間（Cognito の確認コードの有効期間に合わせている）
 - **パスワード変更**: AWS Amplify UI によるパスワード変更
 - **アカウント削除**: ユーザーアカウントの完全削除
 
@@ -121,6 +123,21 @@
 - **titleKana-index**: username + titleKana をキーとするソートインデックス
 - **salesDate-index**: username + salesDate をキーとするソートインデックス
 
+#### 4.1.2 ConsentTable テーブル（規約への同意記録）
+`template.yaml` で作成する（`sam deploy` で作成され、手動作成は不要）。同意の履歴（いつ・どの版に同意したか）をすべて残すため、1 ユーザーにつき規約バージョンごとに 1 行を持つ。法的な証跡になるため、スタックを削除・置換しても消えないよう `DeletionPolicy: Retain` を指定し、ポイントインタイムリカバリを有効にしている。
+
+**プライマリキー**
+- **パーティションキー**: `userId` (String) - Cognito の `sub`（JWT から取得）
+- **ソートキー**: `termsVersion` (String) - 規約バージョン（改定日、例: `2026-11-03`）
+
+**属性**
+| 属性名 | 型 | 説明 |
+|--------|----|----|
+| userId | String | ユーザーID（Cognito の `sub`） |
+| termsVersion | String | 同意した規約バージョン |
+| agreedAt | String | 同意した日時（ISO 8601）。同意済みの行は上書きしないため、最初の同意日時が残る |
+| email | String | 同意時のメールアドレス（JWT の値。無い場合は保存しない） |
+
 ## 5. API仕様
 
 ### 5.1 エンドポイント一覧
@@ -134,6 +151,8 @@
 | POST | `/get-book` | 単一書籍の詳細取得 |
 | POST | `/get-books-count` | 登録書籍数の取得 |
 | POST | `/delete-book` | 書籍の削除 |
+| POST | `/get-consent-status` | 現在の規約バージョンへの同意状況の取得 |
+| POST | `/record-consent` | 現在の規約バージョンへの同意の記録 |
 
 ### 5.2 認証
 すべてのAPIエンドポイントは Amazon Cognito JWT Token による認証が必要。
@@ -170,6 +189,25 @@
   "lastEvaluatedKey": "object"
 }
 ```
+
+#### 5.3.2 規約への同意 API
+**エンドポイント**: `POST /get-consent-status`、`POST /record-consent`（どちらも同じ Lambda `consent` が処理する）
+
+**リクエスト**: 本文は不要（送られても参照しない）。ユーザーは認証トークン（JWT）の `sub` から特定する。他の API のように、本文の `userName` は使わない。
+
+**レスポンス**（2 つの API で共通）
+```json
+{
+  "currentVersion": "2026-11-03",
+  "mustAgree": true,
+  "agreedAt": "2026-11-04T01:02:03.000Z"
+}
+```
+- `currentVersion`: サーバー側で管理する現在の規約バージョン（`lambda-nodejs22.x/consent/handler.mjs` の `CURRENT_TERMS_VERSION`）
+- `mustAgree`: 現在のバージョンへの同意が必要か。そのバージョンの同意記録が無ければ `true`
+- `agreedAt`: 現在のバージョンに同意した日時。未同意の場合は含まれない
+
+`/record-consent` は、バージョンをリクエストから受け取らず、常にサーバー側の現在のバージョンで記録する。すでに同意済みの場合は何もせず、最初の同意日時を返す（二重送信や再試行で、同意日時が上書きされない）。
 
 ## 6. UI/UX仕様
 
@@ -272,6 +310,17 @@
 
 ### 11.3 ライセンス
 MIT License
+
+### 11.4 利用規約・プライバシーポリシーを改定するとき
+規約の本文を実質的に変更した場合は、**必ず次の 3 つを行う**。バージョンを更新しないと、既存ユーザーに再同意を求められない。
+
+1. 本文を変更する（`frontend/src/components/Terms.tsx` の `TermsContent`、`PrivacyPolicy.tsx` の `PrivacyPolicyContent`）。新規登録画面・同意画面・各ページは、同じ本文を表示する。
+2. `lambda-nodejs22.x/consent/handler.mjs` の `CURRENT_TERMS_VERSION` を、改定日（`YYYY-MM-DD`）に更新する。
+3. **バックエンド（`sam build && sam deploy`）を先に、フロントエンドを後に**デプロイする。順序が逆だと、同意状況の取得に失敗する間は、利用が許可される（再同意が求められない）。
+
+誤字の修正など、意味を変えない変更では、バージョンを更新しなくてよい（更新すると、全ユーザーに不要な再同意を求めることになる）。
+
+`CURRENT_TERMS_VERSION` を更新してデプロイすると、既存の全ユーザーが、次回の画面表示時（ログイン中のユーザーは、画面を再読み込みしたとき）に同意画面へ誘導される。
 
 ---
 

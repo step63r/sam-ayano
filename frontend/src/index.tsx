@@ -7,6 +7,8 @@ import './index.css';
 import config from './config.json';
 
 import App from './App';
+import AuthGate from './components/AuthGate';
+import ConsentGate from './components/ConsentGate';
 
 import { Amplify } from 'aws-amplify';
 
@@ -35,7 +37,11 @@ root.render(
   <NextThemesProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
     <Authenticator.Provider>
       <LoadingProvider>
-        <App />
+        <AuthGate>
+          <ConsentGate>
+            <App />
+          </ConsentGate>
+        </AuthGate>
       </LoadingProvider>
     </Authenticator.Provider>
   </NextThemesProvider>

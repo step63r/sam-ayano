@@ -272,6 +272,54 @@ Resources:
             Path: /return-book
             Method: post
             RestApiId: !Ref ApiGateway
+  # 利用規約・プライバシーポリシーへの同意記録。ユーザーID(Cognito の sub) + 規約バージョンを主キーにして、
+  # 同意の履歴（いつ・どの版に同意したか）をすべて残す
+  ConsentTable:
+    Type: AWS::DynamoDB::Table
+    # 同意記録は法的な証跡になるため、スタックを削除・置換しても消えないようにする
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: termsVersion
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: termsVersion
+          KeyType: RANGE
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+  # 同意状況の取得(/get-consent-status)と同意の記録(/record-consent)。
+  # 規約バージョンの定数を 1 か所にまとめるため、1 つの関数で 2 つのパスを処理する
+  ConsentFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: consent/
+      Handler: app.lambdaHandler
+      Runtime: nodejs22.x
+      Role: !GetAtt AyanoLambdaRole.Arn
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          CONSENT_TABLE_NAME: !Ref ConsentTable
+      Events:
+        GetConsentStatus:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /get-consent-status
+            Method: post
+            RestApiId: !Ref ApiGateway
+        RecordConsent:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /record-consent
+            Method: post
+            RestApiId: !Ref ApiGateway
 
 # Outputs:
 #   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
