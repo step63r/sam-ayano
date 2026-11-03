@@ -28,8 +28,10 @@ export type Book = {
   coverUrl?: string,
   /** 貸出ID */
   rentalId?: number,
-  /** 貸出中ユーザー名 */
+  /** 貸出中ユーザーの識別子（Cognito の sub。画面に表示するものではない） */
   renterUsername?: string,
+  /** 貸出中ユーザーのメールアドレス（貸出時点の値。画面表示用） */
+  renterEmail?: string,
   /** 貸出日時 */
   rentalDate?: number,
 };
@@ -48,6 +50,7 @@ export const initBook: Book = {
   lendFlag: false,
   rentalId: 0,
   renterUsername: '',
+  renterEmail: '',
   rentalDate: 0,
 };
 

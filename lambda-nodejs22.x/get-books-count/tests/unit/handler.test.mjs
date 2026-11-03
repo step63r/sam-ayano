@@ -33,7 +33,7 @@ test("認証済みのユーザーの冊数を、COUNT で数える", async () =>
     const store = createStore({ Count: 12 });
     const handler = createHandler({ store });
 
-    const res = await handler(createEvent({ email: "a@example.com" }, {}));
+    const res = await handler(createEvent({ sub: "a@example.com" }, {}));
 
     assert.equal(res.statusCode, 200);
     assert.deepEqual(parse(res), { count: 12 });
@@ -52,7 +52,7 @@ test("複数ページにまたがる場合は、全ページの件数を合計�
     );
     const handler = createHandler({ store });
 
-    const res = await handler(createEvent({ email: "a@example.com" }, {}));
+    const res = await handler(createEvent({ sub: "a@example.com" }, {}));
 
     assert.deepEqual(parse(res), { count: 205 });
     assert.equal(store.queries.length, 3);
@@ -64,7 +64,7 @@ test("複数ページにまたがる場合は、全ページの件数を合計�
 test("1 冊も無ければ 0 を返す", async () => {
     const handler = createHandler({ store: createStore({ Count: 0 }) });
 
-    const res = await handler(createEvent({ email: "a@example.com" }, {}));
+    const res = await handler(createEvent({ sub: "a@example.com" }, {}));
 
     assert.deepEqual(parse(res), { count: 0 });
 });
@@ -72,7 +72,7 @@ test("1 冊も無ければ 0 を返す", async () => {
 test("Count が無い結果は 0 件として扱う", async () => {
     const handler = createHandler({ store: createStore({}) });
 
-    const res = await handler(createEvent({ email: "a@example.com" }, {}));
+    const res = await handler(createEvent({ sub: "a@example.com" }, {}));
 
     assert.deepEqual(parse(res), { count: 0 });
 });
@@ -81,7 +81,7 @@ test("認証情報が無ければ 401 を返し、DynamoDB を呼ばない", asy
     const store = createStore({ Count: 1 });
     const handler = createHandler({ store });
 
-    for (const claims of [undefined, {}, { email: "" }, { email: 123 }]) {
+    for (const claims of [undefined, {}, { sub: "" }, { sub: 123 }]) {
         const res = await handler(createEvent(claims, {}));
         assert.equal(res.statusCode, 401);
     }
@@ -91,7 +91,7 @@ test("認証情報が無ければ 401 を返し、DynamoDB を呼ばない", asy
 test("DynamoDB が失敗したら 500 を返す", async () => {
     const handler = createHandler({ store: { query: async () => { throw new Error("boom"); } } });
 
-    const res = await handler(createEvent({ email: "a@example.com" }, {}));
+    const res = await handler(createEvent({ sub: "a@example.com" }, {}));
 
     assert.equal(res.statusCode, 500);
 });

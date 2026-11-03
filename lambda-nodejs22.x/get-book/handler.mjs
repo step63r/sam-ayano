@@ -61,13 +61,14 @@ export const createHandler = ({ store }) => async (event, context) => {
                     ":lun": userName,
                     ":seqno": seqno
                 },
-                ProjectionExpression: "rental_id, renter_username, rental_date",
+                ProjectionExpression: "rental_id, renter_username, renter_email, rental_date",
                 Limit: 1,
             };
             const queryResult = await store.query(queryInput);
             console.log("queryResult", queryResult);
             item.rentalId = queryResult.Items[0]?.rental_id;
             item.renterUsername = queryResult.Items[0]?.renter_username || "";
+            item.renterEmail = queryResult.Items[0]?.renter_email || "";
             item.rentalDate = queryResult.Items[0]?.rental_date || 0;
         }
 

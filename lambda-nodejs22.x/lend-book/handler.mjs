@@ -60,7 +60,7 @@ export const createHandler = ({ store, now = () => Date.now() }) => async (event
     if (!lender_username) {
         return createResponse(401, { message: "認証情報を取得できませんでした" });
     }
-    const { renter_username, isbn } = JSON.parse(event.body);
+    const { renter_username, renter_email, isbn } = JSON.parse(event.body);
 
     let response = {};
 
@@ -110,6 +110,8 @@ export const createHandler = ({ store, now = () => Date.now() }) => async (event
                 rental_id: seqNo,
                 lender_username: lender_username,
                 renter_username: renter_username,
+                // renter_username は変更されない sub なので、画面表示用に貸出時点のメールアドレスを控える
+                ...(typeof renter_email === "string" && renter_email !== "" ? { renter_email } : {}),
                 isbn: isbn,
                 seqno: item.seqno,
                 rental_date: now(),

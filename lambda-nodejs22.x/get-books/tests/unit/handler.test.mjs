@@ -29,7 +29,7 @@ const createEvent = (claims, body) => ({
 
 const parse = (response) => JSON.parse(response.body);
 
-const USER = { email: "a@example.com" };
+const USER = { sub: "a@example.com" };
 const book = (seqno, extra = {}) => ({ seqno, title: `本${seqno}`, ...extra });
 
 test("認証済みのユーザーの本を、ページサイズの件数で、一貫性のある読み取りで検索する", async () => {
@@ -53,7 +53,7 @@ test("本文に他人のユーザー名を入れても、認証済みのユー�
     const store = createStore({ Items: [book(1)] });
     const handler = createHandler({ store });
 
-    await handler(createEvent({ email: "attacker@example.com" }, { pageSize: 1, userName: "owner@example.com", username: "owner@example.com" }));
+    await handler(createEvent({ sub: "attacker@example.com" }, { pageSize: 1, userName: "owner@example.com", username: "owner@example.com" }));
 
     assert.equal(store.queries[0].ExpressionAttributeValues[":un"], "attacker@example.com");
 });
@@ -221,7 +221,7 @@ test("認証情報が無ければ 401 を返し、DynamoDB を呼ばない", asy
     const store = createStore({ Items: [book(1)] });
     const handler = createHandler({ store });
 
-    for (const claims of [undefined, {}, { email: "" }, { email: 123 }]) {
+    for (const claims of [undefined, {}, { sub: "" }, { sub: 123 }]) {
         const res = await handler(createEvent(claims, { pageSize: 1 }));
         assert.equal(res.statusCode, 401);
     }

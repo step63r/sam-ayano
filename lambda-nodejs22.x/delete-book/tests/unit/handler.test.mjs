@@ -30,7 +30,7 @@ test("認証済みのユーザーの本を削除する", async () => {
     const store = createStore();
     const handler = createHandler({ store });
 
-    const res = await handler(createEvent({ email: "a@example.com" }, { seqno: 3 }));
+    const res = await handler(createEvent({ sub: "a@example.com" }, { seqno: 3 }));
 
     assert.equal(res.statusCode, 200);
     assert.deepEqual(parse(res), { result: true });
@@ -41,7 +41,7 @@ test("本文に他人のユーザー名を入れても、認証済みのユー�
     const store = createStore();
     const handler = createHandler({ store });
 
-    await handler(createEvent({ email: "attacker@example.com" }, { seqno: 3, userName: "owner@example.com", username: "owner@example.com" }));
+    await handler(createEvent({ sub: "attacker@example.com" }, { seqno: 3, userName: "owner@example.com", username: "owner@example.com" }));
 
     assert.equal(store.deletes.length, 1);
     assert.equal(store.deletes[0].Key.username, "attacker@example.com");
@@ -51,7 +51,7 @@ test("認証情報が無ければ 401 を返し、何も削除しない", async 
     const store = createStore();
     const handler = createHandler({ store });
 
-    for (const claims of [undefined, {}, { email: "" }, { email: 123 }]) {
+    for (const claims of [undefined, {}, { sub: "" }, { sub: 123 }]) {
         const res = await handler(createEvent(claims, { seqno: 3 }));
         assert.equal(res.statusCode, 401);
     }
@@ -61,7 +61,7 @@ test("認証情報が無ければ 401 を返し、何も削除しない", async 
 test("DynamoDB が失敗したら 500 を返す", async () => {
     const handler = createHandler({ store: { delete: async () => { throw new Error("boom"); } } });
 
-    const res = await handler(createEvent({ email: "a@example.com" }, { seqno: 3 }));
+    const res = await handler(createEvent({ sub: "a@example.com" }, { seqno: 3 }));
 
     assert.equal(res.statusCode, 500);
 });

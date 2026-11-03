@@ -17,6 +17,7 @@ import UpdateBook from './components/UpdateBook';
 import PageHeader from './components/PageHeader';
 import Settings from './components/Settings';
 import ChangePassword from './components/ChangePassword';
+import ChangeEmail from './components/ChangeEmail';
 import DeleteUser from './components/DeleteUser';
 import Terms from './components/Terms';
 import PrivacyPolicy from './components/PrivacyPolicy';
@@ -84,6 +85,7 @@ const App: React.FC = () => {
               <Route path='/updateComplete' element={<UpdateComplete />} />
               <Route path='/settings' element={<Settings />} />
               <Route path='/settings/changePassword' element={<ChangePassword />} />
+              <Route path='/settings/changeEmail' element={<ChangeEmail />} />
               <Route path='/settings/deleteUser' element={<DeleteUser />} />
               <Route path='/terms' element={<Terms />} />
               <Route path='/privacyPolicy' element={<PrivacyPolicy />} />

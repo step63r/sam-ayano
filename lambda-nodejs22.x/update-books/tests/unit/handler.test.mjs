@@ -34,7 +34,7 @@ const createEvent = (claims, body) => ({
 
 const parse = (response) => JSON.parse(response.body);
 
-const USER = { email: "a@example.com" };
+const USER = { sub: "a@example.com" };
 
 const newBook = {
     author: "夏目漱石",
@@ -104,7 +104,7 @@ test("新規登録は、本文に他人のユーザー名を入れても、認�
     const store = createStore();
     const handler = createHandler({ store });
 
-    await handler(createEvent({ email: "attacker@example.com" }, { data: { ...newBook, username: "owner@example.com" }, userName: "owner@example.com" }));
+    await handler(createEvent({ sub: "attacker@example.com" }, { data: { ...newBook, username: "owner@example.com" }, userName: "owner@example.com" }));
 
     assert.equal(store.calls.find((c) => c.op === "put").input.Item.username, "attacker@example.com");
     assert.deepEqual(store.calls[0].input.Key, { name: "Books-attacker@example.com" });
@@ -163,7 +163,7 @@ test("更新は、本文に他人のユーザー名を入れても、認証済�
     const store = createStore();
     const handler = createHandler({ store });
 
-    await handler(createEvent({ email: "attacker@example.com" }, { data: { ...existing, username: "owner@example.com" }, userName: "owner@example.com" }));
+    await handler(createEvent({ sub: "attacker@example.com" }, { data: { ...existing, username: "owner@example.com" }, userName: "owner@example.com" }));
 
     assert.deepEqual(store.calls[0].input.Key, { username: "attacker@example.com", seqno: 3 });
 });
@@ -215,7 +215,7 @@ test("書影だけの更新は、本文に他人のユーザー名を入れて�
     const store = createStore();
     const handler = createHandler({ store });
 
-    await handler(createEvent({ email: "attacker@example.com" }, { data: { seqno: 3, coverOnly: true, coverUrl: "https://example.com/a.jpg", username: "owner@example.com" } }));
+    await handler(createEvent({ sub: "attacker@example.com" }, { data: { seqno: 3, coverOnly: true, coverUrl: "https://example.com/a.jpg", username: "owner@example.com" } }));
 
     assert.equal(store.calls[0].input.Key.username, "attacker@example.com");
 });
@@ -234,7 +234,7 @@ test("認証情報が無ければ 401 を返し、DynamoDB を呼ばない", asy
     const store = createStore();
     const handler = createHandler({ store });
 
-    for (const claims of [undefined, {}, { email: "" }, { email: 123 }]) {
+    for (const claims of [undefined, {}, { sub: "" }, { sub: 123 }]) {
         const res = await handler(createEvent(claims, { data: newBook }));
         assert.equal(res.statusCode, 401);
     }

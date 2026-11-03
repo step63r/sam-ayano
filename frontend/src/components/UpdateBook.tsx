@@ -446,6 +446,7 @@ const UpdateBook: React.FC = () => {
             ...book,
             lendFlag: false,
             renterUsername: undefined,
+            renterEmail: undefined,
             rentalDate: undefined,
           });
         }
@@ -562,7 +563,8 @@ const UpdateBook: React.FC = () => {
                 id="formRenter"
                 label="貸出中ユーザー"
                 disabled={true}
-                value={book.renterUsername ?? "不明"}
+                // 古い貸出記録など、メールアドレスを控えていないものは識別子をそのまま見せず「不明」にする
+                value={book.renterEmail || "不明"}
               />
               <FormField
                 id="formRentalDate"

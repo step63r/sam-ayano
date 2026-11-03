@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { AuthUser, getCurrentUser } from "aws-amplify/auth";
+import { fetchUserAttributes } from "aws-amplify/auth";
 import { QRCodeCanvas } from 'qrcode.react';
+
+import { encodeMembership } from "@/lib/membership";
 
 import ResponsiveLayout from "./ResponsiveLayout";
 import PageTitle from "./PageTitle";
@@ -10,8 +12,7 @@ import PageTitle from "./PageTitle";
  * @returns コンポーネント
  */
 const Membership: React.FC = () => {
-  const [user, setUser] = useState<AuthUser>();
-  const [userBase64, setUserBase64] = useState("");
+  const [qrValue, setQrValue] = useState("");
 
   /**
    * useEffect
@@ -20,39 +21,30 @@ const Membership: React.FC = () => {
     console.log("useEffect[] start");
 
     (async () => {
-      const ret = await getCurrentUser();
-      if (ret) {
-        setUser(ret);
+      try {
+        // サインイン時に保存された loginId はメールアドレスを変更しても古いままなので、最新の値を取得する
+        const attributes = await fetchUserAttributes();
+        if (attributes.sub) {
+          setQrValue(encodeMembership({ sub: attributes.sub, email: attributes.email ?? "" }));
+        }
+      } catch (error) {
+        console.log("fetchUserAttributes ERROR!", error);
       }
     })();
-    
+
     console.log("useEffect[] end");
   }, []);
-
-  /**
-   * useEffect
-   */
-  useEffect(() => {
-    console.log("useEffect[user] start");
-
-    if (user) {
-      const encoded = btoa(user?.signInDetails?.loginId ?? "");
-      setUserBase64(encoded);
-    }
-
-    console.log("useEffect[user] end");
-  }, [user]);
 
   return (
     <ResponsiveLayout>
       <div className="mx-auto flex w-full max-w-md flex-col items-center gap-4">
         <PageTitle title="会員証QRコード" description="本を借りるときは、貸す人にこのQRコードを読み取ってもらいます" />
-        {user && (
+        {qrValue && (
           // QRコードはテーマに関わらず白地に黒でないと読み取りにくいため、背景は常に白にする
           <div className="glass rounded-3xl p-4">
             <div className="rounded-2xl bg-white p-4">
               <QRCodeCanvas
-                value={userBase64}
+                value={qrValue}
                 size={192}
               />
             </div>

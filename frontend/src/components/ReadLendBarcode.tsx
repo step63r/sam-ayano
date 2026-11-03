@@ -23,6 +23,7 @@ const ReadLendBarcode: React.FC = () => {
   const [iconType, setIconType] = useState<"none" | "info" | "warn" | "error">("none");
   const [modalMessage, setModalMessage] = useState("");
   const [renterUser, setRenterUser] = useState<string>("");
+  const [renterEmail, setRenterEmail] = useState<string>("");
 
   /**
    * useEffect
@@ -46,6 +47,9 @@ const ReadLendBarcode: React.FC = () => {
   useEffect(() => {
     if (location.state?.renterUser) {
       setRenterUser(location.state?.renterUser);
+    }
+    if (location.state?.renterEmail) {
+      setRenterEmail(location.state?.renterEmail);
     }
   }, [location]);
 
@@ -82,7 +86,7 @@ const ReadLendBarcode: React.FC = () => {
   /**
    * 貸出処理を行う
    */
-  const lendBookAsync = useCallback(async (renter_username: string, isbn: string): Promise<boolean | undefined> => {
+  const lendBookAsync = useCallback(async (renter_username: string, renter_email: string, isbn: string): Promise<boolean | undefined> => {
     try {
       const session = await fetchAuthSession();
       const token = session?.tokens?.idToken?.toString();
@@ -96,6 +100,7 @@ const ReadLendBarcode: React.FC = () => {
 
       await axios.post(url, {
         renter_username: renter_username,
+        renter_email: renter_email,
         isbn: isbn,
       }, options);
 
@@ -124,6 +129,7 @@ const ReadLendBarcode: React.FC = () => {
           if (book) {
             const ret = await lendBookAsync(
               renterUser,
+              renterEmail,
               isbn
             );
 
@@ -143,6 +149,7 @@ const ReadLendBarcode: React.FC = () => {
     navigate,
     setIsLoadingOverlay,
     renterUser,
+    renterEmail,
     user,
   ]);
 

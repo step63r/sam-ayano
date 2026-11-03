@@ -36,7 +36,7 @@ test("貸出中でない本は、本の情報だけを返し、貸出記録を�
     const store = createStore({ item: { username: "a@example.com", seqno: 3, title: "本", lendFlag: false } });
     const handler = createHandler({ store });
 
-    const res = await handler(createEvent({ email: "a@example.com" }, { seqno: 3 }));
+    const res = await handler(createEvent({ sub: "a@example.com" }, { seqno: 3 }));
 
     assert.equal(res.statusCode, 200);
     assert.deepEqual(parse(res), { items: { username: "a@example.com", seqno: 3, title: "本", lendFlag: false } });
@@ -47,11 +47,11 @@ test("貸出中でない本は、本の情報だけを返し、貸出記録を�
 test("貸出中の本は、貸出記録から貸出ID・借りた人・貸出日を付けて返す", async () => {
     const store = createStore({
         item: { username: "a@example.com", seqno: 3, lendFlag: true },
-        rentals: [{ rental_id: 7, renter_username: "friend@example.com", rental_date: 1700000000000 }],
+        rentals: [{ rental_id: 7, renter_username: "friend-sub", renter_email: "friend@example.com", rental_date: 1700000000000 }],
     });
     const handler = createHandler({ store });
 
-    const res = await handler(createEvent({ email: "a@example.com" }, { seqno: 3 }));
+    const res = await handler(createEvent({ sub: "a@example.com" }, { seqno: 3 }));
 
     assert.equal(res.statusCode, 200);
     assert.deepEqual(parse(res).items, {
@@ -59,7 +59,8 @@ test("貸出中の本は、貸出記録から貸出ID・借りた人・貸出日
         seqno: 3,
         lendFlag: true,
         rentalId: 7,
-        renterUsername: "friend@example.com",
+        renterUsername: "friend-sub",
+        renterEmail: "friend@example.com",
         rentalDate: 1700000000000,
     });
 });
@@ -68,7 +69,7 @@ test("貸出記録は、認証済みのユーザーが貸した、その本の�
     const store = createStore({ item: { seqno: 3, lendFlag: true } });
     const handler = createHandler({ store });
 
-    await handler(createEvent({ email: "a@example.com" }, { seqno: 3 }));
+    await handler(createEvent({ sub: "a@example.com" }, { seqno: 3 }));
 
     const [query] = store.queries;
     assert.equal(query.TableName, "RentalBook");
@@ -80,10 +81,11 @@ test("貸出中でも貸出記録が見つからなければ、借りた人は�
     const store = createStore({ item: { seqno: 3, lendFlag: true }, rentals: [] });
     const handler = createHandler({ store });
 
-    const res = await handler(createEvent({ email: "a@example.com" }, { seqno: 3 }));
+    const res = await handler(createEvent({ sub: "a@example.com" }, { seqno: 3 }));
 
     assert.equal(res.statusCode, 200);
     assert.equal(parse(res).items.renterUsername, "");
+    assert.equal(parse(res).items.renterEmail, "");
     assert.equal(parse(res).items.rentalDate, 0);
     assert.equal("rentalId" in parse(res).items, false);
 });
@@ -91,7 +93,7 @@ test("貸出中でも貸出記録が見つからなければ、借りた人は�
 test("存在しない本は、空の items を 200 で返す", async () => {
     const handler = createHandler({ store: createStore({ item: undefined }) });
 
-    const res = await handler(createEvent({ email: "a@example.com" }, { seqno: 999 }));
+    const res = await handler(createEvent({ sub: "a@example.com" }, { seqno: 999 }));
 
     assert.equal(res.statusCode, 200);
     assert.deepEqual(parse(res), { items: {} });
@@ -101,7 +103,7 @@ test("本文に他人のユーザー名を入れても、認証済みのユー�
     const store = createStore({ item: { seqno: 3 } });
     const handler = createHandler({ store });
 
-    await handler(createEvent({ email: "attacker@example.com" }, { seqno: 3, userName: "owner@example.com", username: "owner@example.com" }));
+    await handler(createEvent({ sub: "attacker@example.com" }, { seqno: 3, userName: "owner@example.com", username: "owner@example.com" }));
 
     assert.equal(store.gets[0].Key.username, "attacker@example.com");
 });
@@ -110,7 +112,7 @@ test("認証情報が無ければ 401 を返し、DynamoDB を呼ばない", asy
     const store = createStore({ item: { seqno: 3 } });
     const handler = createHandler({ store });
 
-    for (const claims of [undefined, {}, { email: "" }, { email: 123 }]) {
+    for (const claims of [undefined, {}, { sub: "" }, { sub: 123 }]) {
         const res = await handler(createEvent(claims, { seqno: 3 }));
         assert.equal(res.statusCode, 401);
     }
@@ -121,7 +123,7 @@ test("認証情報が無ければ 401 を返し、DynamoDB を呼ばない", asy
 test("DynamoDB が失敗したら 500 を返す", async () => {
     const handler = createHandler({ store: { get: async () => { throw new Error("boom"); } } });
 
-    const res = await handler(createEvent({ email: "a@example.com" }, { seqno: 3 }));
+    const res = await handler(createEvent({ sub: "a@example.com" }, { seqno: 3 }));
 
     assert.equal(res.statusCode, 500);
 });

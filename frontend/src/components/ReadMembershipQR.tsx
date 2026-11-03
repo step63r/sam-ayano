@@ -2,6 +2,7 @@ import React, { useCallback, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Scanner, IDetectedBarcode } from '@yudiel/react-qr-scanner';
 import { LoadingContext } from "../context/LoadingProvider";
+import { decodeMembership } from "@/lib/membership";
 import MessageModal from "./MessageModal";
 
 import ResponsiveLayout from "./ResponsiveLayout";
@@ -21,20 +22,32 @@ const ReadMembershipQR: React.FC = () => {
    * バーコードスキャンイベント
    */
   const handleScan = useCallback(async (results: IDetectedBarcode[]) => {
+    // エラー表示中に同じQRコードを読み取り続けて、何度もモーダルを開き直さないようにする
+    if (modalIsOpen) {
+      return;
+    }
+
     setIsLoadingOverlay(true);
 
     if (results.length > 0) {
-      const item = results[0];
-      const renterUser = atob(item.rawValue);
-      navigate("/lend/readBarcode", {
-        state: {
-          renterUser: renterUser
-        }
-      });
+      const renter = decodeMembership(results[0].rawValue);
+      if (renter) {
+        navigate("/lend/readBarcode", {
+          state: {
+            renterUser: renter.sub,
+            renterEmail: renter.email,
+          }
+        });
+      } else {
+        setIconType("error");
+        setModalMessage("会員証QRコードを読み取れませんでした。借りる人に、最新の会員証QRコードを表示し直してもらってください");
+        setModalIsOpen(true);
+      }
     }
 
     setIsLoadingOverlay(false);
   }, [
+    modalIsOpen,
     navigate,
     setIsLoadingOverlay
   ]);

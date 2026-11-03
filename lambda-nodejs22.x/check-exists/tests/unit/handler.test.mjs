@@ -33,7 +33,7 @@ test("ISBN の本を持っていれば true を返す", async () => {
     const store = createStore({ Items: [{ seqno: 1 }] });
     const handler = createHandler({ store });
 
-    const res = await handler(createEvent({ email: "a@example.com" }, { isbn: "9784048704694" }));
+    const res = await handler(createEvent({ sub: "a@example.com" }, { isbn: "9784048704694" }));
 
     assert.equal(res.statusCode, 200);
     assert.deepEqual(parse(res), { result: true });
@@ -44,7 +44,7 @@ test("認証済みのユーザー自身の本だけを、isbn-index で検索す
     const store = createStore({ Items: [] });
     const handler = createHandler({ store });
 
-    await handler(createEvent({ email: "a@example.com" }, { isbn: "9784048704694" }));
+    await handler(createEvent({ sub: "a@example.com" }, { isbn: "9784048704694" }));
 
     const [query] = store.queries;
     assert.equal(query.TableName, "Books");
@@ -57,7 +57,7 @@ test("本文にユーザー名を入れても、認証済みのユーザーと�
     const store = createStore({ Items: [] });
     const handler = createHandler({ store });
 
-    await handler(createEvent({ email: "attacker@example.com" }, { isbn: "9784048704694", userName: "owner@example.com", username: "owner@example.com" }));
+    await handler(createEvent({ sub: "attacker@example.com" }, { isbn: "9784048704694", userName: "owner@example.com", username: "owner@example.com" }));
 
     assert.equal(store.queries[0].ExpressionAttributeValues[":un"], "attacker@example.com");
 });
@@ -70,7 +70,7 @@ test("最初のページに無くても、次のページに有れば true を�
     );
     const handler = createHandler({ store });
 
-    const res = await handler(createEvent({ email: "a@example.com" }, { isbn: "9784048704694" }));
+    const res = await handler(createEvent({ sub: "a@example.com" }, { isbn: "9784048704694" }));
 
     assert.deepEqual(parse(res), { result: true });
     assert.equal(store.queries.length, 2);
@@ -85,7 +85,7 @@ test("最後のページまで見て無ければ false を返す", async () => {
     );
     const handler = createHandler({ store });
 
-    const res = await handler(createEvent({ email: "a@example.com" }, { isbn: "9784048704694" }));
+    const res = await handler(createEvent({ sub: "a@example.com" }, { isbn: "9784048704694" }));
 
     assert.equal(res.statusCode, 200);
     assert.deepEqual(parse(res), { result: false });
@@ -96,7 +96,7 @@ test("認証情報が無ければ 401 を返し、DynamoDB を呼ばない", asy
     const store = createStore({ Items: [] });
     const handler = createHandler({ store });
 
-    for (const claims of [undefined, {}, { email: "" }, { email: 123 }]) {
+    for (const claims of [undefined, {}, { sub: "" }, { sub: 123 }]) {
         const res = await handler(createEvent(claims, { isbn: "9784048704694" }));
         assert.equal(res.statusCode, 401);
     }
@@ -106,7 +106,7 @@ test("認証情報が無ければ 401 を返し、DynamoDB を呼ばない", asy
 test("DynamoDB が失敗したら 500 を返す", async () => {
     const handler = createHandler({ store: { query: async () => { throw new Error("boom"); } } });
 
-    const res = await handler(createEvent({ email: "a@example.com" }, { isbn: "9784048704694" }));
+    const res = await handler(createEvent({ sub: "a@example.com" }, { isbn: "9784048704694" }));
 
     assert.equal(res.statusCode, 500);
 });
@@ -114,7 +114,7 @@ test("DynamoDB が失敗したら 500 を返す", async () => {
 test("レスポンスに CORS ヘッダーが付く", async () => {
     const handler = createHandler({ store: createStore({ Items: [] }) });
 
-    const res = await handler(createEvent({ email: "a@example.com" }, { isbn: "9784048704694" }));
+    const res = await handler(createEvent({ sub: "a@example.com" }, { isbn: "9784048704694" }));
 
     assert.equal(res.headers["Access-Control-Allow-Origin"], "*");
 });

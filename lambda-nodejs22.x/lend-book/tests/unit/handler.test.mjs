@@ -39,7 +39,7 @@ const createEvent = (claims, body) => ({
 
 const parse = (response) => JSON.parse(response.body);
 
-const LENDER = { email: "owner@example.com" };
+const LENDER = { sub: "owner@example.com" };
 const BODY = { renter_username: "friend@example.com", isbn: "9784048704694" };
 
 test("貸出可能な本を貸し出すと、貸出記録を作り、本の貸出フラグを立てる", async () => {
@@ -119,7 +119,7 @@ test("貸す側は認証済みのユーザーで、本文に別の貸出者を�
     const store = createStore({ books: [{ seqno: 10 }] });
     const handler = createHandler({ store });
 
-    await handler(createEvent({ email: "attacker@example.com" }, { ...BODY, lender_username: "owner@example.com", userName: "owner@example.com" }));
+    await handler(createEvent({ sub: "attacker@example.com" }, { ...BODY, lender_username: "owner@example.com", userName: "owner@example.com" }));
 
     const query = store.calls.find((c) => c.op === "query").input;
     assert.equal(query.ExpressionAttributeValues[":un"], "attacker@example.com");
@@ -136,11 +136,31 @@ test("借りる側は、本文の値がそのまま貸出記録に入る", async
     assert.equal(store.calls.find((c) => c.op === "put").input.Item.renter_username, "someone@example.com");
 });
 
+test("借りる側のメールアドレスが本文にあれば、表示用に貸出記録へ控える", async () => {
+    const store = createStore({ books: [{ seqno: 10 }] });
+    const handler = createHandler({ store });
+
+    await handler(createEvent(LENDER, { ...BODY, renter_email: "friend@example.com" }));
+
+    assert.equal(store.calls.find((c) => c.op === "put").input.Item.renter_email, "friend@example.com");
+});
+
+test("借りる側のメールアドレスが空や文字列でなければ、貸出記録に含めない", async () => {
+    for (const renter_email of ["", 123, null]) {
+        const store = createStore({ books: [{ seqno: 10 }] });
+        const handler = createHandler({ store });
+
+        await handler(createEvent(LENDER, { ...BODY, renter_email }));
+
+        assert.equal("renter_email" in store.calls.find((c) => c.op === "put").input.Item, false);
+    }
+});
+
 test("認証情報が無ければ 401 を返し、DynamoDB を呼ばない", async () => {
     const store = createStore({ books: [{ seqno: 10 }] });
     const handler = createHandler({ store });
 
-    for (const claims of [undefined, {}, { email: "" }, { email: 123 }]) {
+    for (const claims of [undefined, {}, { sub: "" }, { sub: 123 }]) {
         const res = await handler(createEvent(claims, BODY));
         assert.equal(res.statusCode, 401);
     }

@@ -44,7 +44,7 @@ test("貸出者本人は返却でき、貸出記録と書籍の貸出フラグ�
     const store = createFixture();
     const handler = createHandler({ store, now: () => 12345 });
 
-    const res = await handler(createEvent({ email: "owner@example.com" }, { rental_id: 1 }));
+    const res = await handler(createEvent({ sub: "owner@example.com" }, { rental_id: 1 }));
 
     assert.equal(res.statusCode, 200);
     assert.equal(store.rentalMap.get(1).return_flag, true);
@@ -56,7 +56,7 @@ test("貸出者以外は返却できず、何も更新されない", async () =>
     const store = createFixture();
     const handler = createHandler({ store });
 
-    const res = await handler(createEvent({ email: "attacker@example.com" }, { rental_id: 1 }));
+    const res = await handler(createEvent({ sub: "attacker@example.com" }, { rental_id: 1 }));
 
     assert.equal(res.statusCode, 404);
     assert.equal(store.rentalMap.get(1).return_flag, false);
@@ -68,7 +68,7 @@ test("本文に貸出者の名前を入れても、認証済みのユーザー�
     const handler = createHandler({ store });
 
     const res = await handler(createEvent(
-        { email: "attacker@example.com" },
+        { sub: "attacker@example.com" },
         { rental_id: 1, userName: "owner@example.com", lender_username: "owner@example.com" },
     ));
 
@@ -79,7 +79,7 @@ test("本文に貸出者の名前を入れても、認証済みのユーザー�
 test("存在しない貸出IDは、他人の貸出と同じ応答になる", async () => {
     const handler = createHandler({ store: createFixture() });
 
-    const res = await handler(createEvent({ email: "owner@example.com" }, { rental_id: 999 }));
+    const res = await handler(createEvent({ sub: "owner@example.com" }, { rental_id: 999 }));
 
     assert.equal(res.statusCode, 404);
 });
@@ -87,10 +87,10 @@ test("存在しない貸出IDは、他人の貸出と同じ応答になる", asy
 test("返却済みの貸出は、再度返却できない", async () => {
     const store = createFixture();
     const handler = createHandler({ store });
-    await handler(createEvent({ email: "owner@example.com" }, { rental_id: 1 }));
+    await handler(createEvent({ sub: "owner@example.com" }, { rental_id: 1 }));
     store.bookMap.get("owner@example.com#10").lendFlag = true;
 
-    const res = await handler(createEvent({ email: "owner@example.com" }, { rental_id: 1 }));
+    const res = await handler(createEvent({ sub: "owner@example.com" }, { rental_id: 1 }));
 
     assert.equal(res.statusCode, 404);
     assert.equal(store.bookMap.get("owner@example.com#10").lendFlag, true);
@@ -100,15 +100,15 @@ test("認証情報が無ければ 401 を返し、何も更新されない", asy
     const store = createFixture();
     const handler = createHandler({ store });
 
-    for (const claims of [undefined, {}, { email: "" }, { email: 123 }]) {
+    for (const claims of [undefined, {}, { sub: "" }, { sub: 123 }]) {
         const res = await handler(createEvent(claims, { rental_id: 1 }));
         assert.equal(res.statusCode, 401);
     }
     assert.equal(store.rentalMap.get(1).return_flag, false);
 });
 
-test("getUserName は email クレームだけを使い、本文は参照しない", () => {
-    assert.equal(getUserName({ requestContext: { authorizer: { claims: { email: "a@example.com" } } } }), "a@example.com");
+test("getUserName は sub クレームだけを使い、本文は参照しない", () => {
+    assert.equal(getUserName({ requestContext: { authorizer: { claims: { sub: "a@example.com" } } } }), "a@example.com");
     assert.equal(getUserName({ body: JSON.stringify({ userName: "b@example.com" }) }), undefined);
     assert.equal(getUserName(undefined), undefined);
 });
