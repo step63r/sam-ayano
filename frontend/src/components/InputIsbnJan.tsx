@@ -9,15 +9,11 @@ import config from "../config.json";
 
 import { LoadingContext } from "../context/LoadingProvider";
 
-import {
-  Button,
-  Divider,
-  Stack,
-  TextField,
-  Typography
-} from '@mui/material';
+import { Button } from "@/components/ui/button";
 
 import ResponsiveLayout from './ResponsiveLayout';
+import PageTitle from "./PageTitle";
+import FormField from "./FormField";
 
 /**
  * ISBN手動入力画面
@@ -320,17 +316,16 @@ const InputIsbnJan: React.FC = () => {
 
   return (
     <ResponsiveLayout>
-      <Stack spacing={2} direction='column'>
-        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
-          ISBNを入力してください
-        </Typography>
-        <Divider />
-        <TextField required id='formIsbn' label='ISBN'
-          error={isbn === ''}
-          value={isbn} onChange={handleChangeIsbn}
-        />
-        <Button fullWidth disabled={disabled || isButtonDisabled} variant='contained' onClick={handleButtonClick}>次へ</Button>
-      </Stack>
+      <div className="mx-auto w-full max-w-2xl">
+        <PageTitle title="ISBNを入力してください" />
+        <div className="glass flex flex-col gap-5 rounded-3xl p-5 md:p-8">
+          <FormField required id='formIsbn' label='ISBN'
+            error={isbn === ''}
+            value={isbn} onChange={handleChangeIsbn}
+          />
+          <Button size="lg" className="w-full" disabled={disabled || isButtonDisabled} onClick={handleButtonClick}>次へ</Button>
+        </div>
+      </div>
       <MessageModal
         isOpen={modalIsOpen}
         iconType={iconType}

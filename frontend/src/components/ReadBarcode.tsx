@@ -8,14 +8,12 @@ import MessageModal from "./MessageModal";
 
 import config from "../config.json";
 
-import {
-  Button,
-  Divider,
-  Stack,
-  Typography
-} from '@mui/material';
+import { Keyboard, PencilLine } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 import ResponsiveLayout from './ResponsiveLayout';
+import PageTitle from "./PageTitle";
 import { Book } from "../types/book";
 
 /**
@@ -339,25 +337,32 @@ const ReadBarcode: React.FC = () => {
   return (
     <>
       <ResponsiveLayout>
-        <Stack spacing={2} direction='column'>
-          <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
-            バーコードを読み取ってください
-          </Typography>
-          <Divider />
-          <Scanner
-            onScan={handleScan}
-            formats={['ean_13']}
-            components={{
-              audio: false,
-            }}
+        <div className="mx-auto w-full max-w-xl">
+          <PageTitle
+            title="バーコードを読み取ってください"
+            description="本の裏表紙にある「978」または「979」で始まるバーコードを枠に合わせます"
           />
-          <Button fullWidth disabled={disabled} variant="text" onClick={handleManualInput}>
-            バーコードが読み取れない場合
-          </Button>
-          <Button fullWidth disabled={disabled} variant="text" onClick={handleInputIsbnJan}>
-            ISBNを手動で入力する
-          </Button>
-        </Stack>
+          {/* カメラ映像をガラスの枠に収める。overflow-hidden で映像の角も丸める */}
+          <div className="glass overflow-hidden rounded-3xl p-2">
+            <div className="overflow-hidden rounded-2xl">
+              <Scanner
+                onScan={handleScan}
+                formats={['ean_13']}
+                components={{
+                  audio: false,
+                }}
+              />
+            </div>
+          </div>
+          <div className="mt-4 flex flex-col gap-3">
+            <Button variant="outline" size="lg" className="w-full" disabled={disabled} onClick={handleManualInput}>
+              <PencilLine /> バーコードが読み取れない場合
+            </Button>
+            <Button variant="outline" size="lg" className="w-full" disabled={disabled} onClick={handleInputIsbnJan}>
+              <Keyboard /> ISBNを手動で入力する
+            </Button>
+          </div>
+        </div>
         <MessageModal
           isOpen={modalIsOpen}
           iconType={iconType}
