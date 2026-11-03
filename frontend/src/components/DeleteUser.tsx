@@ -10,7 +10,10 @@ import {
 
 import ResponsiveLayout from './ResponsiveLayout';
 
-import { DeleteUserComponents } from "@aws-amplify/ui-react/dist/types/components/AccountSettings/DeleteUser/types";
+// パッケージの exports に無い dist/types/... への深い import は moduleResolution: "bundler" で解決できないため、公開コンポーネントの props から導出する
+type DeleteUserComponents = NonNullable<
+  React.ComponentProps<typeof AccountSettings.DeleteUser>["components"]
+>;
 
 const DeleteUser: React.FC = () => {
   const navigate = useNavigate();
