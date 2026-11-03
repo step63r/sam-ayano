@@ -3,30 +3,15 @@
         {
             "type": "aws-sam",
             "request": "direct-invoke",
-            "name": "lambda-nodejs22.x:HelloWorldFunction (nodejs22.x)",
-            "invokeTarget": {
-                "target": "template",
-                "templatePath": "${workspaceFolder}/lambda-nodejs22.x/template.yaml",
-                "logicalId": "HelloWorldFunction"
-            },
-            "lambda": {
-                "payload": {},
-                "environmentVariables": {},
-                "runtime": "nodejs22.x"
-            }
-        },
-        {
-            "type": "aws-sam",
-            "request": "direct-invoke",
-            "name": "API lambda-nodejs22.x:HelloWorldFunction (nodejs22.x)",
+            "name": "API lambda-nodejs22.x:SearchRakutenBookFunction /search-rakuten-book (nodejs22.x)",
             "invokeTarget": {
                 "target": "api",
                 "templatePath": "${workspaceFolder}/lambda-nodejs22.x/template.yaml",
-                "logicalId": "HelloWorldFunction"
+                "logicalId": "SearchRakutenBookFunction"
             },
             "api": {
-                "path": "/hello",
-                "httpMethod": "get",
+                "path": "/search-rakuten-book",
+                "httpMethod": "post",
                 "payload": {
                     "json": {}
                 }
@@ -38,30 +23,15 @@
         {
             "type": "aws-sam",
             "request": "direct-invoke",
-            "name": "search-rakuten-book:HelloWorldFunction (nodejs22.x)",
-            "invokeTarget": {
-                "target": "template",
-                "templatePath": "${workspaceFolder}/search-rakuten-book/template.yaml",
-                "logicalId": "HelloWorldFunction"
-            },
-            "lambda": {
-                "payload": {},
-                "environmentVariables": {},
-                "runtime": "nodejs22.x"
-            }
-        },
-        {
-            "type": "aws-sam",
-            "request": "direct-invoke",
-            "name": "API search-rakuten-book:HelloWorldFunction (nodejs22.x)",
+            "name": "API lambda-nodejs22.x:SearchOpenBdFunction /search-openbd (nodejs22.x)",
             "invokeTarget": {
                 "target": "api",
-                "templatePath": "${workspaceFolder}/search-rakuten-book/template.yaml",
-                "logicalId": "HelloWorldFunction"
+                "templatePath": "${workspaceFolder}/lambda-nodejs22.x/template.yaml",
+                "logicalId": "SearchOpenBdFunction"
             },
             "api": {
-                "path": "/hello",
-                "httpMethod": "get",
+                "path": "/search-openbd",
+                "httpMethod": "post",
                 "payload": {
                     "json": {}
                 }
@@ -73,30 +43,215 @@
         {
             "type": "aws-sam",
             "request": "direct-invoke",
-            "name": "sam-ayano-lambda:HelloWorldFunction (nodejs22.x)",
+            "name": "API lambda-nodejs22.x:UpdateBooksFunction /update-books (nodejs22.x)",
             "invokeTarget": {
-                "target": "template",
-                "templatePath": "${workspaceFolder}/sam-ayano-lambda/template.yaml",
-                "logicalId": "HelloWorldFunction"
+                "target": "api",
+                "templatePath": "${workspaceFolder}/lambda-nodejs22.x/template.yaml",
+                "logicalId": "UpdateBooksFunction"
+            },
+            "api": {
+                "path": "/update-books",
+                "httpMethod": "post",
+                "payload": {
+                    "json": {}
+                }
             },
             "lambda": {
-                "payload": {},
-                "environmentVariables": {},
                 "runtime": "nodejs22.x"
             }
         },
         {
             "type": "aws-sam",
             "request": "direct-invoke",
-            "name": "API sam-ayano-lambda:HelloWorldFunction (nodejs22.x)",
+            "name": "API lambda-nodejs22.x:GetBooksFunction /get-books (nodejs22.x)",
             "invokeTarget": {
                 "target": "api",
-                "templatePath": "${workspaceFolder}/sam-ayano-lambda/template.yaml",
-                "logicalId": "HelloWorldFunction"
+                "templatePath": "${workspaceFolder}/lambda-nodejs22.x/template.yaml",
+                "logicalId": "GetBooksFunction"
             },
             "api": {
-                "path": "/hello",
-                "httpMethod": "get",
+                "path": "/get-books",
+                "httpMethod": "post",
+                "payload": {
+                    "json": {}
+                }
+            },
+            "lambda": {
+                "runtime": "nodejs22.x"
+            }
+        },
+        {
+            "type": "aws-sam",
+            "request": "direct-invoke",
+            "name": "API lambda-nodejs22.x:GetBookFunction /get-book (nodejs22.x)",
+            "invokeTarget": {
+                "target": "api",
+                "templatePath": "${workspaceFolder}/lambda-nodejs22.x/template.yaml",
+                "logicalId": "GetBookFunction"
+            },
+            "api": {
+                "path": "/get-book",
+                "httpMethod": "post",
+                "payload": {
+                    "json": {}
+                }
+            },
+            "lambda": {
+                "runtime": "nodejs22.x"
+            }
+        },
+        {
+            "type": "aws-sam",
+            "request": "direct-invoke",
+            "name": "API lambda-nodejs22.x:GetBooksCountFunction /get-books-count (nodejs22.x)",
+            "invokeTarget": {
+                "target": "api",
+                "templatePath": "${workspaceFolder}/lambda-nodejs22.x/template.yaml",
+                "logicalId": "GetBooksCountFunction"
+            },
+            "api": {
+                "path": "/get-books-count",
+                "httpMethod": "post",
+                "payload": {
+                    "json": {}
+                }
+            },
+            "lambda": {
+                "runtime": "nodejs22.x"
+            }
+        },
+        {
+            "type": "aws-sam",
+            "request": "direct-invoke",
+            "name": "API lambda-nodejs22.x:CheckExistsFunction /check-exists (nodejs22.x)",
+            "invokeTarget": {
+                "target": "api",
+                "templatePath": "${workspaceFolder}/lambda-nodejs22.x/template.yaml",
+                "logicalId": "CheckExistsFunction"
+            },
+            "api": {
+                "path": "/check-exists",
+                "httpMethod": "post",
+                "payload": {
+                    "json": {}
+                }
+            },
+            "lambda": {
+                "runtime": "nodejs22.x"
+            }
+        },
+        {
+            "type": "aws-sam",
+            "request": "direct-invoke",
+            "name": "API lambda-nodejs22.x:DeleteBookFunction /delete-book (nodejs22.x)",
+            "invokeTarget": {
+                "target": "api",
+                "templatePath": "${workspaceFolder}/lambda-nodejs22.x/template.yaml",
+                "logicalId": "DeleteBookFunction"
+            },
+            "api": {
+                "path": "/delete-book",
+                "httpMethod": "post",
+                "payload": {
+                    "json": {}
+                }
+            },
+            "lambda": {
+                "runtime": "nodejs22.x"
+            }
+        },
+        {
+            "type": "aws-sam",
+            "request": "direct-invoke",
+            "name": "API lambda-nodejs22.x:LendBookFunction /lend-book (nodejs22.x)",
+            "invokeTarget": {
+                "target": "api",
+                "templatePath": "${workspaceFolder}/lambda-nodejs22.x/template.yaml",
+                "logicalId": "LendBookFunction"
+            },
+            "api": {
+                "path": "/lend-book",
+                "httpMethod": "post",
+                "payload": {
+                    "json": {}
+                }
+            },
+            "lambda": {
+                "runtime": "nodejs22.x"
+            }
+        },
+        {
+            "type": "aws-sam",
+            "request": "direct-invoke",
+            "name": "API lambda-nodejs22.x:GetLendBookFunction /get-lend-book (nodejs22.x)",
+            "invokeTarget": {
+                "target": "api",
+                "templatePath": "${workspaceFolder}/lambda-nodejs22.x/template.yaml",
+                "logicalId": "GetLendBookFunction"
+            },
+            "api": {
+                "path": "/get-lend-book",
+                "httpMethod": "post",
+                "payload": {
+                    "json": {}
+                }
+            },
+            "lambda": {
+                "runtime": "nodejs22.x"
+            }
+        },
+        {
+            "type": "aws-sam",
+            "request": "direct-invoke",
+            "name": "API lambda-nodejs22.x:ReturnBookFunction /return-book (nodejs22.x)",
+            "invokeTarget": {
+                "target": "api",
+                "templatePath": "${workspaceFolder}/lambda-nodejs22.x/template.yaml",
+                "logicalId": "ReturnBookFunction"
+            },
+            "api": {
+                "path": "/return-book",
+                "httpMethod": "post",
+                "payload": {
+                    "json": {}
+                }
+            },
+            "lambda": {
+                "runtime": "nodejs22.x"
+            }
+        },
+        {
+            "type": "aws-sam",
+            "request": "direct-invoke",
+            "name": "API lambda-nodejs22.x:ConsentFunction /get-consent-status (nodejs22.x)",
+            "invokeTarget": {
+                "target": "api",
+                "templatePath": "${workspaceFolder}/lambda-nodejs22.x/template.yaml",
+                "logicalId": "ConsentFunction"
+            },
+            "api": {
+                "path": "/get-consent-status",
+                "httpMethod": "post",
+                "payload": {
+                    "json": {}
+                }
+            },
+            "lambda": {
+                "runtime": "nodejs22.x"
+            }
+        },
+        {
+            "type": "aws-sam",
+            "request": "direct-invoke",
+            "name": "API lambda-nodejs22.x:ConsentFunction /record-consent (nodejs22.x)",
+            "invokeTarget": {
+                "target": "api",
+                "templatePath": "${workspaceFolder}/lambda-nodejs22.x/template.yaml",
+                "logicalId": "ConsentFunction"
+            },
+            "api": {
+                "path": "/record-consent",
+                "httpMethod": "post",
                 "payload": {
                     "json": {}
                 }
