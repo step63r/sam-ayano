@@ -69,6 +69,7 @@
 - **手動入力**: ISBN/JANコードの手動入力
 - **重複チェック**: 既存書籍との重複を自動検出
 - **書籍情報取得**: openBD API・楽天Books APIから書籍情報を自動取得
+- **書影の取得**: 書籍情報と一緒に書影のURLを取得して登録する。openBD は書影（`summary.cover`）を持たない本が多いため、openBD に書影が無い場合だけ楽天Books（`largeImageUrl`、無ければ `mediumImageUrl`）で補う。書影が取得できなくても、登録は止めない。書影の画像そのものは保存せず、URL だけを保存する（https の URL のみ受け付ける）
 - **情報編集**: タイトル、著者、出版社、発売日の手動編集
 - **読書管理**: 読んだフラグ、感想の登録
 
@@ -116,6 +117,7 @@
 | titleKana | String | 書籍タイトル（カナ） |
 | readFlag | Boolean | 読了フラグ（true: 読了、false: 未読） |
 | note | String | 感想・メモ |
+| coverUrl | String | 書影のURL（任意）。登録時に取得できた場合だけ保存する。更新では変更しないため、登録時の値が残る。書影を保存する前に登録した本には無い |
 
 **グローバルセカンダリインデックス（GSI）**
 - **isbn-index**: isbn をキーとするインデックス
@@ -183,12 +185,15 @@
       "seqno": "number",
       "author": "string",
       "publisherName": "string",
-      "title": "string"
+      "title": "string",
+      "readFlag": "boolean",
+      "coverUrl": "string（書影が無い本には含まれない）"
     }
   ],
   "lastEvaluatedKey": "object"
 }
 ```
+`titleKana`、`salesDate`、`lendFlag` も返す。`readFlag` と `coverUrl` は、一覧に読了バッジと書影を出すために返している。タイトル順・発売日順の並び替えでは GSI を検索するため、これらを返すには、各 GSI の `ProjectionType` が `ALL`（または `readFlag`・`coverUrl` を含む）である必要がある。
 
 #### 5.3.2 規約への同意 API
 **エンドポイント**: `POST /get-consent-status`、`POST /record-consent`（どちらも同じ Lambda `consent` が処理する）
@@ -286,7 +291,24 @@
 ### 10.2 バックエンド
 - **デプロイツール**: AWS SAM CLI
 - **設定ファイル**: `template.yaml`
-- **環境変数**: `RAKUTEN_APPLICATION_ID` (楽天APIキー)
+- **環境変数**（`search-rakuten-book` 用。`template.yaml` のパラメーターから渡す。いずれも `NoEcho`）:
+  - `RAKUTEN_APPLICATION_ID`: 楽天のアプリケーションID（UUID形式）
+  - `RAKUTEN_ACCESS_KEY`: 楽天のアクセスキー（`pk_` で始まる）
+  - `RAKUTEN_REFERER`: 楽天の管理画面で「許可されたWebサイト」に登録したURL。**必須**（空だと、楽天が `403 REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING` を返す）。`https://` を省いたホスト名だけの値でも、Lambda が `https://` を補う。**`Referer`（`https://ホスト名/`）と `Origin`（`https://ホスト名`。パスや末尾のスラッシュなし）の両方**を、この値から作って送る（楽天のゲートウェイは、Referer だけでは `REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING` になり、Origin を送ると通ったという報告があるが、公式ドキュメントには記載が無い）。送った値は、失敗時のレスポンスと Lambda のログ（`sentReferer`、`sentOrigin`）に残る。許可サイトと一致しない場合は、別のエラー（`HTTP_REFERRER_NOT_ALLOWED`）になると報告されている
+- **楽天の認証情報の渡し方**: git で追跡される `samconfig.toml` には書かない。追跡されない `samconfig.local.toml`（`lambda-nodejs22.x/` 直下。`.gitignore` 済み）に書いて、`sam deploy --config-file samconfig.local.toml` でデプロイする。`--config-file` を指定すると `samconfig.toml` は読まれないため、スタック名やリージョンなども、このファイルに書く必要がある。例:
+  ```toml
+  version = 0.1
+
+  [default.global.parameters]
+  stack_name = "stack-sam-ayano"
+  region = "ap-northeast-1"
+
+  [default.deploy.parameters]
+  capabilities = [ "CAPABILITY_IAM", "CAPABILITY_NAMED_IAM" ]
+  confirm_changeset = false
+  resolve_s3 = true
+  parameter_overrides = "RAKUTENAPPLICATIONID=<アプリケーションID> RAKUTENACCESSKEY=<アクセスキー> RAKUTENREFERER=<登録したURL>"
+  ```
 
 ### 10.3 必要なAWSリソース
 - CloudFront Distribution
@@ -306,7 +328,10 @@
 
 ### 11.2 外部サービス依存
 - **openBD API**: 書籍情報取得の第一選択肢
-- **楽天Books API**: openBD APIで見つからない場合のフォールバック
+- **楽天Books API**: openBD APIで見つからない場合のフォールバック。また、openBD に書影が無い場合の書影の取得にも使う
+  - エンドポイントは `https://openapi.rakuten.co.jp/services/api/BooksTotal/Search/20170404`。楽天ウェブサービスは 2026 年 2 月に刷新され、旧ドメイン（`app.rakuten.co.jp`）と、旧アカウントで発行された数字のアプリケーションIDは使えなくなった（旧 API は 2026 年 5 月に停止したと報じられている）
+  - 認証には、UUID形式のアプリケーションIDと、アクセスキーの**両方**が必須（楽天ウェブサービスのアプリ登録で取得する）
+  - 呼び出しに失敗した場合、`search-rakuten-book` は上流のステータスとエラー文だけを返す（認証情報を含むため、エラーオブジェクトをそのまま返してはいけない）
 
 ### 11.3 ライセンス
 MIT License

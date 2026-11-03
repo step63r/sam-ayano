@@ -5,8 +5,20 @@ Description: |
   Sample SAM Template for lambda-nodejs22.x
 
 Parameters:
+  # 楽天ウェブサービスの認証情報。2026年2月の刷新で、UUID形式のアプリケーションIDとアクセスキーの両方が必須になった。
+  # 値は楽天の管理画面でアプリを登録して取得する。秘匿情報なので NoEcho とし、
+  # git で追跡されるファイル(samconfig.toml など)には書かず、デプロイ時に渡す
   RAKUTENAPPLICATIONID:
     Type: String
+    NoEcho: true
+  RAKUTENACCESSKEY:
+    Type: String
+    NoEcho: true
+  # 楽天の管理画面で「許可されたWebサイト」に登録した URL。サーバーから呼ぶ際の Referer として送る。
+  # 楽天側が Referer を求める場合だけ必要で、空なら送らない
+  RAKUTENREFERER:
+    Type: String
+    Default: ""
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -112,6 +124,8 @@ Resources:
       Environment:
         Variables:
           RAKUTEN_APPLICATION_ID: !Ref RAKUTENAPPLICATIONID
+          RAKUTEN_ACCESS_KEY: !Ref RAKUTENACCESSKEY
+          RAKUTEN_REFERER: !Ref RAKUTENREFERER
   SearchOpenBdFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
