@@ -15,28 +15,21 @@ import {
 
 import BookItem from "./BookItem";
 
+import { Loader2, Search, X } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
-  Checkbox,
-  Divider,
-  FormControlLabel,
-  Stack,
-  Typography,
-  InputAdornment,
-  TextField,
-  IconButton,
-  FormControl,
-  InputLabel,
   Select,
-  SelectChangeEvent,
-  MenuItem,
-} from "@mui/material";
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import ResponsiveLayout from './ResponsiveLayout';
-
-import {
-  CancelRounded,
-  Search,
-} from "@mui/icons-material";
 
 /** 一度にロードするデータ件数 */
 const PAGE_SIZE = 10;
@@ -432,12 +425,12 @@ const Books: React.FC = () => {
   /**
    * ソート順変更イベント
    */
-  const handleChangeSortKey = useCallback(async (e: SelectChangeEvent) => {
+  const handleChangeSortKey = useCallback(async (value: string) => {
     console.log("handleChangeSortKey start");
     setIsLoadingOverlay(true);
 
     if (user) {
-      const val = parseInt(e.target.value);
+      const val = parseInt(value);
 
       const newSortKeyId = Math.floor(val / 10);
       const newIsDesc = val % 10 === 1 ? true : false;
@@ -495,83 +488,84 @@ const Books: React.FC = () => {
 
   return (
     <ResponsiveLayout>
-      <Stack spacing={2} direction='column'>
-        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
-          あなたの書籍情報
-        </Typography>
-        <Divider />
-        <TextField
-          placeholder="検索"
-          type="text"
-          variant="outlined"
-          fullWidth
-          size="small"
-          value={keyword}
-          onChange={(e) => {
-            const newValue = e.target.value;
-            setKeyword(newValue);
-            saveSearchKeyword(newValue);
-          }}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search />
-                </InputAdornment>
-              ),
-              endAdornment: (
-                <IconButton onClick={() => {
+      <div className="flex flex-col gap-4">
+        <div className="flex items-end justify-between gap-3">
+          <h2 className="text-xl font-bold tracking-tight">あなたの書籍情報</h2>
+          <p className="text-sm text-muted-foreground">
+            合計 {booksCount.toLocaleString()} 冊
+          </p>
+        </div>
+
+        {/* 検索・並び替え・絞り込み */}
+        <div className="glass flex flex-col gap-3 rounded-3xl p-4 md:flex-row md:items-center">
+          <div className="relative md:flex-1">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <Input
+              type="text"
+              placeholder="タイトル・著者・出版社で検索"
+              aria-label="検索"
+              className="h-10 pr-10 pl-9"
+              value={keyword}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                setKeyword(newValue);
+                saveSearchKeyword(newValue);
+              }}
+            />
+            {keyword && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label="検索キーワードを消去"
+                className="absolute top-1/2 right-1 -translate-y-1/2"
+                onClick={() => {
                   setKeyword("");
                   saveSearchKeyword("");
-                }}>
-                  <CancelRounded />
-                </IconButton>
-              )
-            }
-          }}
-        />
-        <FormControl fullWidth>
-          <InputLabel>並び替え</InputLabel>
+                }}
+              >
+                <X />
+              </Button>
+            )}
+          </div>
           <Select
-            label="並び替え"
             value={(sortKeyId * 10 + (isDesc ? 1 : 0)).toString()}
-            onChange={handleChangeSortKey}
+            onValueChange={handleChangeSortKey}
           >
-            <MenuItem value={0}>登録順（古い順）</MenuItem>
-            <MenuItem value={1}>登録順（新しい順）</MenuItem>
-            <MenuItem value={20}>タイトル順（昇順）</MenuItem>
-            <MenuItem value={21}>タイトル順（降順）</MenuItem>
-            <MenuItem value={30}>発売日順（古い順）</MenuItem>
-            <MenuItem value={31}>発売日順（新しい順）</MenuItem>
+            <SelectTrigger aria-label="並び替え" className="h-10 w-full md:w-60">
+              <SelectValue placeholder="並び替え" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0">登録順（古い順）</SelectItem>
+              <SelectItem value="1">登録順（新しい順）</SelectItem>
+              <SelectItem value="20">タイトル順（昇順）</SelectItem>
+              <SelectItem value="21">タイトル順（降順）</SelectItem>
+              <SelectItem value="30">発売日順（古い順）</SelectItem>
+              <SelectItem value="31">発売日順（新しい順）</SelectItem>
+            </SelectContent>
           </Select>
-        </FormControl>
-        <FormControlLabel
-          control={
+          <Label className="w-fit cursor-pointer gap-2 text-sm md:shrink-0">
             <Checkbox
               checked={unreadOnly}
-              onChange={(e) => {
-                const newValue = e.target.checked;
+              onCheckedChange={(checked) => {
+                const newValue = checked === true;
                 setUnreadOnly(newValue);
                 saveUnreadFilter(newValue);
               }}
-              color="primary"
             />
-          }
-          label="未読のみ表示"
-          sx={{ width: 'fit-content' }}
-        />
-        <Typography variant='caption' component='div'>
-          合計 {booksCount.toLocaleString()} 冊の書籍
-        </Typography>
-        <Stack spacing={2} direction='column'>
+            未読のみ表示
+          </Label>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {books?.map((book, index) => (
             <BookItem key={`${book.seqno}-${index}`} book={book} onClick={() => navigate(`/books/${book.seqno}`)} />
           ))}
-        </Stack>
+        </div>
         {books.length === 0 && (
-          <Typography variant='caption' component='div' sx={{ textAlign: 'center' }}>
+          <p className="py-8 text-center text-sm text-muted-foreground">
             検索結果がありません
-          </Typography>
+          </p>
         )}
         {/* 無限スクロール用のセンチネル要素 */}
         {lastEvaluatedKey && (
@@ -579,11 +573,12 @@ const Books: React.FC = () => {
         )}
         {/* データ読み込み中の表示 */}
         {isLoadingMore && (
-          <Typography variant='caption' component='div' sx={{ textAlign: 'center', padding: 2 }}>
+          <p className="flex items-center justify-center gap-2 p-4 text-sm text-muted-foreground" role="status">
+            <Loader2 className="size-4 animate-spin" aria-hidden />
             読み込み中...
-          </Typography>
+          </p>
         )}
-      </Stack>
+      </div>
       <MessageModal
         isOpen={modalIsOpen}
         iconType={iconType}
