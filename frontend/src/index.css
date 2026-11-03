@@ -1,13 +1,256 @@
-body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-        sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/noto-sans-jp";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Noto Sans JP Variable', ui-sans-serif, system-ui, -apple-system, 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', sans-serif;
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-        monospace;
+/*
+ * ガラスの透明度・ぼかしはすべてここの変数で調整する。
+ * 文字色は背景の透け具合に左右されるため、--glass-bg を下げすぎると本文のコントラストが落ちる。
+ */
+:root {
+    --background: oklch(0.975 0.008 260);
+    --foreground: oklch(0.2 0.02 265);
+    --card: oklch(1 0 0 / 0.6);
+    --card-foreground: oklch(0.2 0.02 265);
+    --popover: oklch(0.99 0.004 260 / 0.88);
+    --popover-foreground: oklch(0.2 0.02 265);
+    --primary: oklch(0.5 0.2 262);
+    --primary-foreground: oklch(0.99 0 0);
+    --secondary: oklch(0.95 0.015 262 / 0.7);
+    --secondary-foreground: oklch(0.28 0.06 262);
+    --muted: oklch(0.95 0.01 262 / 0.7);
+    --muted-foreground: oklch(0.44 0.03 262);
+    --accent: oklch(0.93 0.03 262 / 0.7);
+    --accent-foreground: oklch(0.28 0.06 262);
+    --destructive: oklch(0.55 0.23 27);
+    --border: oklch(0.3 0.03 262 / 0.14);
+    --input: oklch(0.3 0.03 262 / 0.2);
+    --ring: oklch(0.55 0.18 262);
+    --chart-1: oklch(0.6 0.18 262);
+    --chart-2: oklch(0.65 0.15 200);
+    --chart-3: oklch(0.7 0.16 150);
+    --chart-4: oklch(0.75 0.15 70);
+    --chart-5: oklch(0.65 0.2 20);
+    --radius: 1rem;
+    --sidebar: oklch(1 0 0 / 0.6);
+    --sidebar-foreground: oklch(0.2 0.02 265);
+    --sidebar-primary: oklch(0.5 0.2 262);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-accent: oklch(0.93 0.03 262 / 0.7);
+    --sidebar-accent-foreground: oklch(0.28 0.06 262);
+    --sidebar-border: oklch(0.3 0.03 262 / 0.14);
+    --sidebar-ring: oklch(0.55 0.18 262);
+
+    /* Liquid Glass */
+    --glass-bg: oklch(1 0 0 / 0.5);
+    --glass-bg-soft: oklch(1 0 0 / 0.62);
+    --glass-bg-strong: oklch(1 0 0 / 0.42);
+    --glass-bg-solid: oklch(0.985 0.004 260);
+    --glass-border: oklch(1 0 0 / 0.7);
+    --glass-highlight: oklch(1 0 0 / 0.85);
+    --glass-lowlight: oklch(0.3 0.03 262 / 0.08);
+    --glass-shadow: 0 8px 32px oklch(0.3 0.08 262 / 0.12), 0 1px 2px oklch(0.3 0.08 262 / 0.08);
+    --glass-blur: 24px;
+    --glass-saturate: 1.7;
+
+    /* ガラス越しに見せるメッシュ背景 */
+    --mesh-base: oklch(0.97 0.012 260);
+    --mesh-1: oklch(0.84 0.11 250 / 0.85);
+    --mesh-2: oklch(0.86 0.1 320 / 0.75);
+    --mesh-3: oklch(0.88 0.09 190 / 0.75);
+    --mesh-4: oklch(0.9 0.09 65 / 0.75);
+}
+
+.dark {
+    --background: oklch(0.17 0.025 268);
+    --foreground: oklch(0.96 0.005 262);
+    --card: oklch(0.26 0.03 268 / 0.5);
+    --card-foreground: oklch(0.96 0.005 262);
+    --popover: oklch(0.22 0.03 268 / 0.9);
+    --popover-foreground: oklch(0.96 0.005 262);
+    --primary: oklch(0.72 0.14 262);
+    --primary-foreground: oklch(0.16 0.04 265);
+    --secondary: oklch(0.32 0.04 268 / 0.6);
+    --secondary-foreground: oklch(0.96 0.005 262);
+    --muted: oklch(0.3 0.03 268 / 0.6);
+    --muted-foreground: oklch(0.76 0.02 262);
+    --accent: oklch(0.34 0.05 268 / 0.6);
+    --accent-foreground: oklch(0.96 0.005 262);
+    --destructive: oklch(0.7 0.19 22);
+    --border: oklch(1 0 0 / 14%);
+    --input: oklch(1 0 0 / 20%);
+    --ring: oklch(0.7 0.14 262);
+    --chart-1: oklch(0.72 0.14 262);
+    --chart-2: oklch(0.75 0.12 200);
+    --chart-3: oklch(0.78 0.14 150);
+    --chart-4: oklch(0.8 0.13 70);
+    --chart-5: oklch(0.72 0.17 20);
+    --sidebar: oklch(0.26 0.03 268 / 0.5);
+    --sidebar-foreground: oklch(0.96 0.005 262);
+    --sidebar-primary: oklch(0.72 0.14 262);
+    --sidebar-primary-foreground: oklch(0.16 0.04 265);
+    --sidebar-accent: oklch(0.34 0.05 268 / 0.6);
+    --sidebar-accent-foreground: oklch(0.96 0.005 262);
+    --sidebar-border: oklch(1 0 0 / 14%);
+    --sidebar-ring: oklch(0.7 0.14 262);
+
+    --glass-bg: oklch(0.28 0.03 268 / 0.42);
+    --glass-bg-soft: oklch(0.28 0.03 268 / 0.55);
+    --glass-bg-strong: oklch(0.24 0.03 268 / 0.5);
+    --glass-bg-solid: oklch(0.22 0.025 268);
+    --glass-border: oklch(1 0 0 / 0.16);
+    --glass-highlight: oklch(1 0 0 / 0.2);
+    --glass-lowlight: oklch(0 0 0 / 0.25);
+    --glass-shadow: 0 8px 32px oklch(0 0 0 / 0.45), 0 1px 2px oklch(0 0 0 / 0.3);
+    --glass-saturate: 1.4;
+
+    --mesh-base: oklch(0.16 0.03 268);
+    --mesh-1: oklch(0.38 0.14 262 / 0.7);
+    --mesh-2: oklch(0.36 0.14 310 / 0.55);
+    --mesh-3: oklch(0.36 0.09 195 / 0.5);
+    --mesh-4: oklch(0.4 0.1 50 / 0.4);
+}
+
+/*
+ * backdrop-filter 非対応、または OS 側で「透明度を減らす」が有効な場合は、
+ * 半透明を諦めて不透明背景にする（読みやすさを優先）。
+ * 上の :root / .dark と同じ詳細度なので、必ずこれらより後ろに置くこと。
+ */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    :root, .dark {
+        --glass-bg: var(--glass-bg-solid);
+        --glass-bg-soft: var(--glass-bg-solid);
+        --glass-bg-strong: var(--glass-bg-solid);
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    :root, .dark {
+        --glass-bg: var(--glass-bg-solid);
+        --glass-bg-soft: var(--glass-bg-solid);
+        --glass-bg-strong: var(--glass-bg-solid);
+        --glass-blur: 0px;
+    }
+}
+
+@utility glass {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    border: 1px solid var(--glass-border);
+    box-shadow:
+        var(--glass-shadow),
+        inset 0 1px 0 var(--glass-highlight),
+        inset 0 -1px 0 var(--glass-lowlight);
+}
+
+/* 一覧の各カードなど、大量に並ぶ要素向け。ぼかしを弱めてモバイルでの描画負荷を抑える */
+@utility glass-soft {
+    background: var(--glass-bg-soft);
+    -webkit-backdrop-filter: blur(10px) saturate(1.3);
+    backdrop-filter: blur(10px) saturate(1.3);
+    border: 1px solid var(--glass-border);
+    box-shadow:
+        0 2px 12px oklch(0.3 0.08 262 / 0.08),
+        inset 0 1px 0 var(--glass-highlight);
+}
+
+/* ヘッダーやタブバーなど、スクロールする内容の上に重なる要素向け */
+@utility glass-strong {
+    background: var(--glass-bg-strong);
+    -webkit-backdrop-filter: blur(36px) saturate(1.9);
+    backdrop-filter: blur(36px) saturate(1.9);
+    border: 1px solid var(--glass-border);
+    box-shadow:
+        var(--glass-shadow),
+        inset 0 1px 0 var(--glass-highlight),
+        inset 0 -1px 0 var(--glass-lowlight);
+}
+
+/*
+ * 新レイアウトのルートに付ける。MUI の画面が混在する間に既存画面の見た目を変えないよう、
+ * body ではなくこのクラスを付けた要素の内側にだけ背景を敷く。
+ */
+@utility glass-backdrop {
+    position: relative;
+    isolation: isolate;
+
+    &::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background:
+            radial-gradient(60rem 42rem at 8% -5%, var(--mesh-1), transparent 62%),
+            radial-gradient(52rem 40rem at 105% 8%, var(--mesh-2), transparent 62%),
+            radial-gradient(52rem 46rem at -5% 105%, var(--mesh-3), transparent 62%),
+            radial-gradient(46rem 40rem at 105% 105%, var(--mesh-4), transparent 62%),
+            var(--mesh-base);
+    }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
