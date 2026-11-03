@@ -294,7 +294,7 @@
 - **環境変数**（`search-rakuten-book` 用。`template.yaml` のパラメーターから渡す。いずれも `NoEcho`）:
   - `RAKUTEN_APPLICATION_ID`: 楽天のアプリケーションID（UUID形式）
   - `RAKUTEN_ACCESS_KEY`: 楽天のアクセスキー（`pk_` で始まる）
-  - `RAKUTEN_REFERER`: 楽天の管理画面で「許可されたWebサイト」に登録したURL。**必須**（空だと、楽天が `403 REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING` を返す）。`https://` を省いたホスト名だけの値でも、Lambda が `https://` を補う。**`Referer`（`https://ホスト名/`）と `Origin`（`https://ホスト名`。パスや末尾のスラッシュなし）の両方**を、この値から作って送る（楽天のゲートウェイは、Referer だけでは `REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING` になり、Origin を送ると通ったという報告があるが、公式ドキュメントには記載が無い）。送った値は、失敗時のレスポンスと Lambda のログ（`sentReferer`、`sentOrigin`）に残る。許可サイトと一致しない場合は、別のエラー（`HTTP_REFERRER_NOT_ALLOWED`）になると報告されている
+  - `RAKUTEN_REFERER`: 楽天の管理画面で「許可されたWebサイト」に登録したURL。**必須**（空だと、楽天が `403 REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING` を返す）。`https://` を省いたホスト名だけの値でも、Lambda が `https://` を補う。**`Referer`（`https://ホスト名/`）と `Origin`（`https://ホスト名`。パスや末尾のスラッシュなし）の両方**を、この値から作って送る（楽天のゲートウェイは、Referer だけでは `REQUEST_CONTEXT_BODY_HTTP_REFERRER_MISSING` になった。Origin も送るようにして、書影が取得できることを確認済み。公式ドキュメントには記載が無く、Referer と Origin のどちらが効いているかは未確認）。送った値は、失敗時のレスポンスと Lambda のログ（`sentReferer`、`sentOrigin`）に残る。許可サイトと一致しない場合は、別のエラー（`HTTP_REFERRER_NOT_ALLOWED`）になると報告されている
 - **楽天の認証情報の渡し方**: git で追跡される `samconfig.toml` には書かない。追跡されない `samconfig.local.toml`（`lambda-nodejs22.x/` 直下。`.gitignore` 済み）に書いて、`sam deploy --config-file samconfig.local.toml` でデプロイする。`--config-file` を指定すると `samconfig.toml` は読まれないため、スタック名やリージョンなども、このファイルに書く必要がある。例:
   ```toml
   version = 0.1
