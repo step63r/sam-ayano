@@ -1,13 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import {
-  Button,
-  Stack,
-  Typography
-} from '@mui/material';
-
-import ResponsiveLayout from './ResponsiveLayout';
+import CompletePanel from './CompletePanel';
 
 /**
  * 貸出完了画面
@@ -28,14 +22,7 @@ const LendComplete: React.FC = () => {
   };
 
   return (
-    <ResponsiveLayout>
-      <Stack spacing={2} direction='column'>
-        <Typography variant='h2' component='div' gutterBottom>
-          貸出完了
-        </Typography>
-        <Button fullWidth disabled={disabled} variant='contained' onClick={handleOnClick}>ホームに戻る</Button>
-      </Stack>
-    </ResponsiveLayout>
+    <CompletePanel title="貸出完了" disabled={disabled} onBackHome={handleOnClick} />
   )
 };
 

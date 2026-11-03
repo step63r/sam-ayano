@@ -4,13 +4,9 @@ import { Scanner, IDetectedBarcode } from '@yudiel/react-qr-scanner';
 import { LoadingContext } from "../context/LoadingProvider";
 import MessageModal from "./MessageModal";
 
-import {
-  Divider,
-  Stack,
-  Typography
-} from "@mui/material";
-
 import ResponsiveLayout from "./ResponsiveLayout";
+import PageTitle from "./PageTitle";
+import ScannerFrame from "./ScannerFrame";
 
 const ReadMembershipQR: React.FC = () => {
   const navigate = useNavigate();
@@ -65,19 +61,21 @@ const ReadMembershipQR: React.FC = () => {
 
   return (
     <ResponsiveLayout>
-      <Stack spacing={2} direction='column'>
-        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
-          会員証QRコードを読み取ってください
-        </Typography>
-        <Divider />
-        <Scanner
-          onScan={handleScan}
-          formats={['qr_code', 'micro_qr_code']}
-          components={{
-            audio: false,
-          }}
+      <div className="mx-auto w-full max-w-xl">
+        <PageTitle
+          title="会員証QRコードを読み取ってください"
+          description="借りる人の「会員証を提示」画面のQRコードを枠に合わせます"
         />
-      </Stack>
+        <ScannerFrame>
+          <Scanner
+            onScan={handleScan}
+            formats={['qr_code', 'micro_qr_code']}
+            components={{
+              audio: false,
+            }}
+          />
+        </ScannerFrame>
+      </div>
       <MessageModal
         isOpen={modalIsOpen}
         iconType={iconType}

@@ -1,14 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AccountSettings, Divider } from "@aws-amplify/ui-react";
+import { AccountSettings } from "@aws-amplify/ui-react";
+import { TriangleAlert } from "lucide-react";
 import MessageModal from "./MessageModal";
 
-import {
-  Stack,
-  Typography,
-} from '@mui/material';
-
 import ResponsiveLayout from './ResponsiveLayout';
+import PageTitle from "./PageTitle";
+import AmplifyThemeScope from "./AmplifyThemeScope";
 
 // パッケージの exports に無い dist/types/... への深い import は moduleResolution: "bundler" で解決できないため、公開コンポーネントの props から導出する
 type DeleteUserComponents = NonNullable<
@@ -68,22 +66,24 @@ const DeleteUser: React.FC = () => {
   
   return (
     <ResponsiveLayout>
-      <Stack spacing={2} direction="column">
-        <Typography variant="subtitle1" component="div" sx={{ textAlign: 'center' }}>
-          アカウント削除
-        </Typography>
-        <Divider />
-        <Typography variant="body1" component="div" sx={{ fontWeight: 'bold' }} >
-          本当に削除しますか？
-        </Typography>
-        <Typography variant="caption" component="div" color="error" sx={{ fontWeight: 'bold' }}>
-          ※この削除は取り消しできません
-        </Typography>
-        <AccountSettings.DeleteUser
-          components={components}
-          onSuccess={handleSuccessDeleteUser}
-          onError={handleErrorDeleteUser}
-        />
+      <div className="mx-auto w-full max-w-2xl">
+        <PageTitle title="アカウント削除" />
+        <div className="glass flex flex-col gap-4 rounded-3xl p-5 md:p-8">
+          <div className="flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
+            <TriangleAlert className="mt-0.5 size-5 shrink-0 text-destructive" aria-hidden />
+            <div>
+              <p className="font-bold">本当に削除しますか？</p>
+              <p className="mt-1 text-sm font-bold text-destructive">※この削除は取り消しできません</p>
+            </div>
+          </div>
+          <AmplifyThemeScope>
+            <AccountSettings.DeleteUser
+              components={components}
+              onSuccess={handleSuccessDeleteUser}
+              onError={handleErrorDeleteUser}
+            />
+          </AmplifyThemeScope>
+        </div>
         <MessageModal
           isOpen={modalIsOpen}
           iconType={iconType}
@@ -91,7 +91,7 @@ const DeleteUser: React.FC = () => {
           message={modalMessage}
           handleClose={handleCloseModal}
         />
-      </Stack>
+      </div>
     </ResponsiveLayout>
   );
 };

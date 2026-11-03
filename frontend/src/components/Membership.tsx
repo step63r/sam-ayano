@@ -2,13 +2,8 @@ import React, { useEffect, useState } from "react";
 import { AuthUser, getCurrentUser } from "aws-amplify/auth";
 import { QRCodeCanvas } from 'qrcode.react';
 
-import {
-  Divider,
-  Stack,
-  Typography,
-} from '@mui/material';
-
 import ResponsiveLayout from "./ResponsiveLayout";
+import PageTitle from "./PageTitle";
 
 /**
  * 会員情報画面
@@ -50,16 +45,18 @@ const Membership: React.FC = () => {
 
   return (
     <ResponsiveLayout>
-      <Stack spacing={2} direction="column" alignItems="center" sx={{ width: '100%', pb: 6 }}>
-        <Typography variant='subtitle1' component='div' sx={{ textAlign: 'center' }}>
-          会員証QRコード
-        </Typography>
-        <Divider sx={{ width: '100%' }} />
+      <div className="mx-auto flex w-full max-w-md flex-col items-center gap-4">
+        <PageTitle title="会員証QRコード" description="本を借りるときは、貸す人にこのQRコードを読み取ってもらいます" />
         {user && (
-          <QRCodeCanvas
-            value={userBase64}
-            size={192}
-          />
+          // QRコードはテーマに関わらず白地に黒でないと読み取りにくいため、背景は常に白にする
+          <div className="glass rounded-3xl p-4">
+            <div className="rounded-2xl bg-white p-4">
+              <QRCodeCanvas
+                value={userBase64}
+                size={192}
+              />
+            </div>
+          </div>
         )}
         {/* <TextField
           value={userBase64}
@@ -75,14 +72,11 @@ const Membership: React.FC = () => {
             el.select();
           }}
         /> */}
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{ position: 'fixed', bottom: 8, left: 0, right: 0, textAlign: 'center', zIndex: 1000 }}
-        >
+        {/* 下部ナビに重ならないよう、画面固定ではなく本文の末尾に置く */}
+        <p className="text-center text-xs text-muted-foreground">
           QRコードは株式会社デンソーウェーブの登録商標です
-        </Typography>
-      </Stack>
+        </p>
+      </div>
     </ResponsiveLayout>
   );
 };

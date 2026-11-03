@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 
 import ResponsiveLayout from './ResponsiveLayout';
 import PageTitle from "./PageTitle";
+import ScannerFrame from "./ScannerFrame";
 import { Book } from "../types/book";
 
 /**
@@ -342,18 +343,15 @@ const ReadBarcode: React.FC = () => {
             title="バーコードを読み取ってください"
             description="本の裏表紙にある「978」または「979」で始まるバーコードを枠に合わせます"
           />
-          {/* カメラ映像をガラスの枠に収める。overflow-hidden で映像の角も丸める */}
-          <div className="glass overflow-hidden rounded-3xl p-2">
-            <div className="overflow-hidden rounded-2xl">
-              <Scanner
-                onScan={handleScan}
-                formats={['ean_13']}
-                components={{
-                  audio: false,
-                }}
-              />
-            </div>
-          </div>
+          <ScannerFrame>
+            <Scanner
+              onScan={handleScan}
+              formats={['ean_13']}
+              components={{
+                audio: false,
+              }}
+            />
+          </ScannerFrame>
           <div className="mt-4 flex flex-col gap-3">
             <Button variant="outline" size="lg" className="w-full" disabled={disabled} onClick={handleManualInput}>
               <PencilLine /> バーコードが読み取れない場合
