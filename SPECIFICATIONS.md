@@ -301,7 +301,7 @@
 - **デプロイ**: GitHub Actions（`.github/workflows/deploy-frontend.yml`）。`master` への push で、`frontend/` の変更があったときに実行される（手動実行も可）。ビルド → S3 へ同期 → CloudFront のキャッシュ削除、の順に行う
   - `assets/`（ファイル名にハッシュが付く）は長期キャッシュ、それ以外（`index.html` など）は `no-cache` でアップロードする。旧 `index.html` が参照する旧ファイルを消さないよう、`assets/` は削除しない
   - `src/config.json` は git 管理外のため、ワークフローが GitHub の repository variables（`COGNITO_USER_POOL_ID`、`COGNITO_CLIENT_ID`、`API_ENDPOINT`）から生成する
-- **IaC の状況**: バケット・Distribution・OAC はコンソールで作成したもので、まだ IaC の管理下にない（CDK で import する予定）
+- **IaC**: バケット・Distribution・OAC・バケットポリシーは、CDK スタック `hosting-sam-ayano`（`infra/cdk/`）で管理する。コンソールで作成済みのため、新規作成ではなく `cdk import` で取り込む。手順は `infra/cdk/README.md` を参照
 
 ### 10.2 バックエンド
 - **デプロイツール**: AWS SAM CLI

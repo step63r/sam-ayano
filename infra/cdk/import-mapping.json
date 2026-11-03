@@ -1,0 +1,6 @@
+{
+  "Bucket": { "BucketName": "serverless-book-management-system" },
+  "BucketPolicy": { "Bucket": "serverless-book-management-system" },
+  "OriginAccessControl": { "Id": "E3FGW7P2MR0XJ2" },
+  "Distribution": { "Id": "E1DXDFBOHYMRDN" }
+}
