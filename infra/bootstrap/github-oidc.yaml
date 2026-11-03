@@ -1,0 +1,162 @@
+# This file is intentionally ASCII-only. `aws cloudformation deploy` reads the template with the
+# OS default encoding, so non-ASCII text makes it fail with a cp932 decode error on Japanese Windows.
+AWSTemplateFormatVersion: '2010-09-09'
+Description: |
+  OIDC provider and IAM roles that let GitHub Actions deploy to AWS.
+  GitHub Actions cannot grant itself deploy permissions, so a human deploys this template once, by hand.
+
+Parameters:
+  GitHubRepository:
+    Type: String
+    Default: step63r/sam-ayano
+  # The only branch allowed to assume the deploy roles. Workflows on other branches or PRs cannot assume them
+  GitHubBranch:
+    Type: String
+    Default: master
+  # An account can have only one GitHub OIDC provider.
+  # Set this to false if one already exists for another repository, and the existing one is used
+  CreateOidcProvider:
+    Type: String
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+  FrontendBucketName:
+    Type: String
+    Default: serverless-book-management-system
+  FrontendDistributionId:
+    Type: String
+    Default: E1DXDFBOHYMRDN
+  BackendStackName:
+    Type: String
+    Default: stack-sam-ayano
+
+Conditions:
+  ShouldCreateOidcProvider: !Equals [!Ref CreateOidcProvider, 'true']
+
+Resources:
+  GitHubOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Condition: ShouldCreateOidcProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+
+  FrontendDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRoleWithWebIdentity
+            Principal:
+              # Referenced with !Ref so that, when the provider is created in this stack, it is created before the role
+              Federated: !If
+                - ShouldCreateOidcProvider
+                - !Ref GitHubOidcProvider
+                - !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubRepository}:ref:refs/heads/${GitHubBranch}
+      Policies:
+        - PolicyName: deploy-frontend
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: s3:ListBucket
+                Resource: !Sub arn:${AWS::Partition}:s3:::${FrontendBucketName}
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource: !Sub arn:${AWS::Partition}:s3:::${FrontendBucketName}/*
+              - Effect: Allow
+                Action: cloudfront:CreateInvalidation
+                Resource: !Sub arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${FrontendDistributionId}
+
+  # A SAM deploy creates IAM roles, Lambda, API Gateway and DynamoDB through CloudFormation, so the
+  # permissions tend to be broad. Scope them to resources whose names start with the stack name.
+  # apigateway:* is hard to scope by ARN, so it covers every API in the account
+  BackendDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRoleWithWebIdentity
+            Principal:
+              # Referenced with !Ref so that, when the provider is created in this stack, it is created before the role
+              Federated: !If
+                - ShouldCreateOidcProvider
+                - !Ref GitHubOidcProvider
+                - !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+                token.actions.githubusercontent.com:sub: !Sub repo:${GitHubRepository}:ref:refs/heads/${GitHubBranch}
+      Policies:
+        - PolicyName: deploy-backend
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudformation:CreateChangeSet
+                  - cloudformation:DescribeChangeSet
+                  - cloudformation:ExecuteChangeSet
+                  - cloudformation:DeleteChangeSet
+                  - cloudformation:DescribeStacks
+                  - cloudformation:DescribeStackEvents
+                  - cloudformation:GetTemplate
+                  - cloudformation:GetTemplateSummary
+                  - cloudformation:ListStackResources
+                Resource:
+                  - !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${BackendStackName}/*
+                  # `sam deploy --resolve-s3` checks that this stack, which owns the artifact bucket, exists
+                  - !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/aws-sam-cli-managed-default/*
+              # Needed to create a change set for a template that uses the AWS::Serverless transform
+              - Effect: Allow
+                Action: cloudformation:CreateChangeSet
+                Resource: !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:aws:transform/Serverless-2016-10-31
+              - Effect: Allow
+                Action: s3:*
+                Resource:
+                  - !Sub arn:${AWS::Partition}:s3:::aws-sam-cli-managed-default-samclisourcebucket-*
+                  - !Sub arn:${AWS::Partition}:s3:::aws-sam-cli-managed-default-samclisourcebucket-*/*
+              - Effect: Allow
+                Action:
+                  - iam:CreateRole
+                  - iam:DeleteRole
+                  - iam:GetRole
+                  - iam:PassRole
+                  - iam:TagRole
+                  - iam:UntagRole
+                  - iam:UpdateAssumeRolePolicy
+                  - iam:PutRolePolicy
+                  - iam:GetRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:ListRolePolicies
+                  - iam:ListAttachedRolePolicies
+                Resource: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${BackendStackName}-*
+              - Effect: Allow
+                Action: lambda:*
+                Resource: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${BackendStackName}-*
+              - Effect: Allow
+                Action: dynamodb:*
+                Resource: !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${BackendStackName}-*
+              - Effect: Allow
+                Action: apigateway:*
+                Resource: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}::/*
+
+Outputs:
+  FrontendDeployRoleArn:
+    Description: Set as the GitHub repository variable AWS_FRONTEND_DEPLOY_ROLE_ARN
+    Value: !GetAtt FrontendDeployRole.Arn
+  BackendDeployRoleArn:
+    Description: Set as the GitHub repository variable AWS_BACKEND_DEPLOY_ROLE_ARN
+    Value: !GetAtt BackendDeployRole.Arn

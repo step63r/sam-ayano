@@ -28,13 +28,12 @@ $ git clone git@github.com:yourname/sam-ayano.git
 
 ## Usage
 
-フロントエンドはビルドしてS3に配置します。
+`master` にプッシュすると、GitHub Actions が変更のあった側を自動でデプロイします。
 
-```
-$ npm run build
-```
+- フロントエンド: ビルドして S3 に配置し、CloudFront のキャッシュを削除します
+- バックエンド: SAM アプリケーションとしてデプロイします
 
-バックエンドはSAMアプリケーションとしてデプロイします。
+初回のセットアップ（IAM ロールの作成と GitHub への値の登録）は、`SPECIFICATIONS.md` の「10.3 GitHub Actions のための AWS 設定」を参照してください。
 
 ## Contribution
 

@@ -22,7 +22,7 @@ React + TypeScript の SPA です。ビルドツールは Vite、UI は Tailwind
 | コマンド | 内容 |
 |---|---|
 | `npm start`（または `npm run dev`） | 開発サーバーを起動します（<http://localhost:3000>）。 |
-| `npm run build` | 型チェック（`tsc --noEmit`）のあと、本番用にビルドして `build/` に出力します。S3 には、この `build/` の中身を配置します。 |
+| `npm run build` | 型チェック（`tsc --noEmit`）のあと、本番用にビルドして `build/` に出力します。この `build/` の中身を、GitHub Actions（`.github/workflows/deploy-frontend.yml`）が S3 に配置します。 |
 | `npm run preview` | ビルドした `build/` を、ローカルで確認します。 |
 
 ## 構成

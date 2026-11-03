@@ -1,0 +1,61 @@
+name: Deploy backend
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - lambda-nodejs22.x/**
+      - .github/workflows/deploy-backend.yml
+  workflow_dispatch:
+
+# CloudFormation はスタックの更新を同時に受け付けないため、直列にする。
+# 実行中の更新を途中で止めるとロールバックを招くので、キャンセルはしない
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: lambda-nodejs22.x
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ vars.AWS_BACKEND_DEPLOY_ROLE_ARN }}
+          aws-region: ap-northeast-1
+
+      - run: sam build
+
+      # スタック名・リージョン・capabilities は samconfig.toml から読まれる。
+      # 楽天の認証情報は samconfig.toml に書けないので、GitHub の secrets から渡す。
+      # 空のまま渡すと Lambda が楽天 API を呼べなくなるため、未設定ならここで失敗させる
+      - name: Deploy
+        env:
+          RAKUTEN_APPLICATION_ID: ${{ secrets.RAKUTEN_APPLICATION_ID }}
+          RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
+          RAKUTEN_REFERER: ${{ vars.RAKUTEN_REFERER }}
+        run: |
+          : "${RAKUTEN_APPLICATION_ID:?secret RAKUTEN_APPLICATION_ID is not set}"
+          : "${RAKUTEN_ACCESS_KEY:?secret RAKUTEN_ACCESS_KEY is not set}"
+          sam deploy \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides \
+              "RAKUTENAPPLICATIONID=${RAKUTEN_APPLICATION_ID}" \
+              "RAKUTENACCESSKEY=${RAKUTEN_ACCESS_KEY}" \
+              "RAKUTENREFERER=${RAKUTEN_REFERER}"

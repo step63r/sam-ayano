@@ -14,7 +14,7 @@ export default defineConfig({
     port: 3000,
   },
   build: {
-    // 既存の運用（build/ を S3 に手動配置）を変えないため、Vite 既定の dist ではなく build を使う
+    // デプロイのワークフロー（.github/workflows/deploy-frontend.yml）が build/ を参照するため、Vite 既定の dist ではなく build を使う
     outDir: 'build',
   },
 });

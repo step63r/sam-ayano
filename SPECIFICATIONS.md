@@ -296,12 +296,17 @@
 
 ### 10.1 フロントエンド
 - **ビルド**: `npm run build`
-- **配置先**: Amazon S3 バケット
-- **配信**: CloudFront による CDN 配信
+- **配置先**: Amazon S3 バケット `serverless-book-management-system`（非公開。CloudFront の OAC 経由でのみ読める）
+- **配信**: CloudFront Distribution `E1DXDFBOHYMRDN`（独自ドメイン `sbms.minatoproject.com`）。存在しないパス（S3 が 403 を返す）は `/` を 200 で返す SPA フォールバックを設定している
+- **デプロイ**: GitHub Actions（`.github/workflows/deploy-frontend.yml`）。`master` への push で、`frontend/` の変更があったときに実行される（手動実行も可）。ビルド → S3 へ同期 → CloudFront のキャッシュ削除、の順に行う
+  - `assets/`（ファイル名にハッシュが付く）は長期キャッシュ、それ以外（`index.html` など）は `no-cache` でアップロードする。旧 `index.html` が参照する旧ファイルを消さないよう、`assets/` は削除しない
+  - `src/config.json` は git 管理外のため、ワークフローが GitHub の repository variables（`COGNITO_USER_POOL_ID`、`COGNITO_CLIENT_ID`、`API_ENDPOINT`）から生成する
+- **IaC の状況**: バケット・Distribution・OAC はコンソールで作成したもので、まだ IaC の管理下にない（CDK で import する予定）
 
 ### 10.2 バックエンド
 - **デプロイツール**: AWS SAM CLI
 - **設定ファイル**: `template.yaml`
+- **デプロイ**: GitHub Actions（`.github/workflows/deploy-backend.yml`）。`master` への push で、`lambda-nodejs22.x/` の変更があったときに `sam build` → `sam deploy` を実行する（手動実行も可）。楽天の認証情報は、GitHub の secrets（`RAKUTEN_APPLICATION_ID`、`RAKUTEN_ACCESS_KEY`）と repository variable（`RAKUTEN_REFERER`）から渡す。手元からデプロイする場合は、下の `samconfig.local.toml` を使う
 - **環境変数**（`search-rakuten-book` 用。`template.yaml` のパラメーターから渡す。いずれも `NoEcho`）:
   - `RAKUTEN_APPLICATION_ID`: 楽天のアプリケーションID（UUID形式）
   - `RAKUTEN_ACCESS_KEY`: 楽天のアクセスキー（`pk_` で始まる）
@@ -321,9 +326,33 @@
   parameter_overrides = "RAKUTENAPPLICATIONID=<アプリケーションID> RAKUTENACCESSKEY=<アクセスキー> RAKUTENREFERER=<登録したURL>"
   ```
 
-### 10.3 必要なAWSリソース
+### 10.3 GitHub Actions のための AWS 設定
+GitHub Actions は、OIDC で AWS のロールを引き受けてデプロイする（長期のアクセスキーは使わない）。
+OIDC プロバイダーとロールは、`infra/bootstrap/github-oidc.yaml` で作る。デプロイ権限を自分で作ることはできないため、このテンプレートだけは人が最初に 1 回デプロイする。
+
+```powershell
+aws cloudformation deploy `
+  --stack-name github-oidc-sam-ayano `
+  --template-file infra/bootstrap/github-oidc.yaml `
+  --capabilities CAPABILITY_IAM `
+  --region ap-northeast-1
+```
+
+出力されたロール ARN と、ワークフローが使う値を、GitHub のリポジトリに登録する。
+
+| 種別 | 名前 | 内容 |
+|---|---|---|
+| variable | `AWS_FRONTEND_DEPLOY_ROLE_ARN` | `FrontendDeployRoleArn` の出力 |
+| variable | `AWS_BACKEND_DEPLOY_ROLE_ARN` | `BackendDeployRoleArn` の出力 |
+| variable | `COGNITO_USER_POOL_ID` / `COGNITO_CLIENT_ID` / `API_ENDPOINT` | `frontend/src/config.json` の値 |
+| variable | `RAKUTEN_REFERER` | 楽天に登録した URL |
+| secret | `RAKUTEN_APPLICATION_ID` / `RAKUTEN_ACCESS_KEY` | 楽天の認証情報 |
+
+ロールを引き受けられるのは、`master` ブランチのワークフローだけ。
+
+### 10.4 必要なAWSリソース
 - CloudFront Distribution
-- S3 Bucket (静的サイトホスティング)
+- S3 Bucket (非公開。CloudFront の OAC 経由で配信)
 - API Gateway
 - Lambda Functions (8個)
 - DynamoDB Table (Books)
