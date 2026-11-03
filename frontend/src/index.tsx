@@ -13,7 +13,7 @@ import { Amplify } from 'aws-amplify';
 import { LoadingProvider } from './context/LoadingProvider';
 import { Authenticator } from '@aws-amplify/ui-react';
 
-import { CssBaseline } from '@mui/material';
+import { ThemeProvider as NextThemesProvider } from 'next-themes';
 
 Amplify.configure({
   Auth: {
@@ -32,14 +32,13 @@ const root = ReactDOM.createRoot(
 );
 
 root.render(
-  <>
-    <CssBaseline />
+  <NextThemesProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
     <Authenticator.Provider>
       <LoadingProvider>
         <App />
       </LoadingProvider>
     </Authenticator.Provider>
-  </>
+  </NextThemesProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function

@@ -12,6 +12,18 @@
     />
     <link rel="apple-touch-icon" href="/logo192.png" />
     <link rel="manifest" href="/manifest.json" />
+    <!--
+      CSR のため next-themes の初期化は React の描画後になり、ダーク設定の人に一瞬ライト表示が出る。
+      それを防ぐため、描画前に同じ判定（localStorage の "theme"）で dark クラスを付ける。
+    -->
+    <script>
+      try {
+        var t = localStorage.getItem('theme');
+        var dark = t === 'dark' || ((!t || t === 'system') && matchMedia('(prefers-color-scheme: dark)').matches);
+        if (dark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    </script>
     <title>ツンドク.com | 持っている書籍をシンプルに管理</title>
   </head>
   <body>

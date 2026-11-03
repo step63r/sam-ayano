@@ -213,6 +213,20 @@
 }
 
 /*
+ * ダイアログ・シート・メニュー用。本文を読ませる面なので他より不透明にする。
+ * border を使うと Sheet 側の片側 border 指定と競合するため、縁は box-shadow で描く。
+ */
+@utility glass-panel {
+    background: var(--popover);
+    -webkit-backdrop-filter: blur(28px) saturate(1.6);
+    backdrop-filter: blur(28px) saturate(1.6);
+    box-shadow:
+        var(--glass-shadow),
+        inset 0 0 0 1px var(--glass-border),
+        inset 0 1px 0 var(--glass-highlight);
+}
+
+/*
  * 新レイアウトのルートに付ける。MUI の画面が混在する間に既存画面の見た目を変えないよう、
  * body ではなくこのクラスを付けた要素の内側にだけ背景を敷く。
  */

@@ -1,19 +1,25 @@
-import { Box } from "@mui/material";
 import { FC, memo } from "react";
-import { CircularProgress } from "@mui/material";
+import { Loader2 } from "lucide-react";
 
 /**
  * プログレスリング表示用のオーバーレイコンポーネント
  */
 export const LoadingOverLay: FC<{ isLoadingOverlay: boolean }> = memo(({ isLoadingOverlay }) => {
+  // z-index はヘッダー・下部ナビ(z-40)より上、ダイアログ(z-50)より下にする。
+  // 読み込み中に出るエラーダイアログがオーバーレイに隠れないようにするため
   return (
     <>
       {isLoadingOverlay && (
-        <Box sx={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', zIndex: '999', color: 'rgba(0,0,0,0.3)', background: 'rgba(255,255,255,0.5)' }}>
-          <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-            <CircularProgress />
-          </Box>
-      </Box>
+        <div
+          role="status"
+          aria-live="polite"
+          aria-label="読み込み中"
+          className="fixed inset-0 z-45 flex items-center justify-center bg-background/30 backdrop-blur-sm"
+        >
+          <div className="glass rounded-3xl p-6">
+            <Loader2 className="size-8 animate-spin text-primary" />
+          </div>
+        </div>
       )}
     </>
   );

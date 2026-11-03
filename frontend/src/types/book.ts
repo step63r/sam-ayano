@@ -60,6 +60,10 @@ export type BookSummary = {
   title: string,
   /** 貸出中フラグ */
   lendFlag?: boolean,
+  /** 読んだフラグ（API が返す場合のみ） */
+  readFlag?: boolean,
+  /** 書影URL（API が返す場合のみ） */
+  coverUrl?: string,
 }
 
 export const initBookSummary: BookSummary = {
