@@ -8,6 +8,11 @@ const DOMAIN_NAME = 'sbms.minatoproject.com';
 // CloudFront の証明書は us-east-1 のものしか使えない。証明書は DNS 検証で別管理のため、ARN で参照するだけにする
 const CERTIFICATE_ARN =
   'arn:aws:acm:us-east-1:966191971257:certificate/02754811-e993-4304-bcb6-56f437d2d0e5';
+// 複数アプリで共有する WebACL(CLOUDFRONT スコープ)。このリポジトリの CDK 管理外で、
+// common-cloudfront-waf リポジトリ(スタック CommonCloudFrontWafStack)が管理している。
+// ルールを変えるとこのサイトにも影響するので、変更はあちらで行う。
+const WEB_ACL_ARN =
+  'arn:aws:wafv2:us-east-1:966191971257:global/webacl/WebAcl-sgbGbk9C0rlz/4ea2dfea-6a75-4c9d-856d-f8fd7cb10e0a';
 // マネージドポリシー Managed-CachingOptimized
 const CACHING_OPTIMIZED_POLICY_ID = '658327ea-f89d-4fab-a63d-7e88639e58f6';
 
@@ -102,6 +107,7 @@ export class HostingStack extends cdk.Stack {
           minimumProtocolVersion: 'TLSv1.2_2021',
         },
         restrictions: { geoRestriction: { restrictionType: 'none' } },
+        webAclId: WEB_ACL_ARN,
       },
       tags: [{ key: 'Name', value: 'ツンドク.com' }],
     });
