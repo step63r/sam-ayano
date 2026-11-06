@@ -86,6 +86,8 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
+      # 既定の execute-api エンドポイントを塞ぎ、カスタムドメイン経由のみで受け付ける
+      DisableExecuteApiEndpoint: true
       # ACM 証明書が ap-northeast-1 にあるため REGIONAL にする。
       # EDGE(SAM の既定)のカスタムドメインには us-east-1 の証明書が必要になる
       EndpointConfiguration:
