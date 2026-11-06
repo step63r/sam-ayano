@@ -86,6 +86,17 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
+      # ACM 証明書が ap-northeast-1 にあるため REGIONAL にする。
+      # EDGE(SAM の既定)のカスタムドメインには us-east-1 の証明書が必要になる
+      EndpointConfiguration:
+        Type: REGIONAL
+      # DNS は CloudFormation の管理外(外部で CNAME を登録する)ため Route53 は指定しない。
+      # BasePath を省略すると Prod ステージが / にマップされ、URL に /Prod が付かない
+      Domain:
+        DomainName: api.sbms.minatoproject.com
+        CertificateArn: arn:aws:acm:ap-northeast-1:966191971257:certificate/651ddb09-2203-42b0-9946-24b7eef62f28
+        EndpointConfiguration: REGIONAL
+        SecurityPolicy: TLS_1_2
       # Cors:
       #   AllowOrigin: "'*'"
       #   AllowMethods: "'OPTIONS,POST'"
