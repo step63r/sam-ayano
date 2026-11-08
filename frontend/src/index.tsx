@@ -23,6 +23,10 @@ Amplify.configure({
       userPoolClientId: config.CognitoClientId,
       loginWith: {
         email: true
+      },
+      // Authenticator がパスキーを選択肢に出す条件。RP ID などの実体は Cognito 側の設定で決まるので、ここでは空にしている
+      passwordless: {
+        webAuthn: {}
       }
     },
   }

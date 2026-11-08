@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchUserAttributes } from "aws-amplify/auth";
 import { useAuthenticator } from "@aws-amplify/ui-react";
 
-import { KeyRound, LogOut, Mail, Trash2 } from "lucide-react";
+import { Fingerprint, KeyRound, LogOut, Mail, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -53,6 +53,12 @@ const Settings: React.FC = () => {
     navigate("/settings/changePassword");
   };
 
+  const handleManagePasskeys = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+    setDisabled(true);
+    navigate("/settings/passkeys");
+  };
+
   const handleDeleteUser = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
     setDisabled(true);
@@ -79,6 +85,9 @@ const Settings: React.FC = () => {
             </Button>
             <Button size="lg" className="w-full" disabled={disabled} onClick={handleChangePassword}>
               <KeyRound /> パスワード変更
+            </Button>
+            <Button size="lg" className="w-full" disabled={disabled} onClick={handleManagePasskeys}>
+              <Fingerprint /> パスキー
             </Button>
             <Button variant="outline" size="lg" className="w-full" disabled={disabled} onClick={signOut}>
               <LogOut /> ログアウト

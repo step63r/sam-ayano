@@ -94,11 +94,13 @@ const services: React.ComponentProps<typeof Authenticator>["services"] = {
    * 登録直後は未認証のため同意を記録できず、初回ログイン時に ConsentGate が控えを見て記録する
    * （控えが無いと、登録したばかりのユーザーにも同意画面がもう一度出てしまう）
    */
-  async handleSignUp(input: SignUpInput) {
+  handleSignUp: (async (input: SignUpInput) => {
     const output = await signUp(input);
     rememberSignupConsent(input.username);
     return output;
-  },
+    // aws-amplify 6.22 以降、signUp の型に (ctx, input) のオーバーロードが増え、services の型もそれに追従する。
+    // ただし Authenticator は実行時に input だけを渡して呼ぶため、キャストで型を合わせている
+  }) as typeof signUp,
 };
 
 /**
@@ -121,7 +123,16 @@ const AuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </div>
       <div className="glass w-full max-w-md rounded-3xl pb-4 sm:max-w-lg">
         <AmplifyThemeScope>
-          <Authenticator components={components} services={services} formFields={formFields} />
+          {/*
+            パスワード欄を出す従来の画面を既定にし、パスキーは「ほかのサインイン方法」から選ばせる。
+            既定をパスキーにすると、パスキー未登録の既存ユーザーのログイン画面からパスワード欄が消える
+          */}
+          <Authenticator
+            components={components}
+            services={services}
+            formFields={formFields}
+            passwordless={{ preferredAuthMethod: "PASSWORD" }}
+          />
         </AmplifyThemeScope>
       </div>
     </div>

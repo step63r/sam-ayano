@@ -95,6 +95,7 @@
 #### 3.2.4 認証・アカウント管理
 - **ユーザー登録**: AWS Amplify の `Authenticator` によるサインアップ。登録画面に利用規約・プライバシーポリシーの本文を表示し、同意のチェックを入れないと登録できない
 - **ログイン**: AWS Cognito認証（画面の見た目は `AuthGate` で差し替え、認証の処理は Amplify の `Authenticator` を使う）
+  - **パスキー**: パスワードを置き換えず、追加のログイン手段として使う。ログイン画面は従来どおりパスワード欄を既定にし、「ほかのサインイン方法」から選ぶ（`AuthGate` の `passwordless.preferredAuthMethod`）。登録・一覧・削除は設定画面の「パスキー」（`Passkeys.tsx`）から行う。Cognito 側の設定（機能プラン Essentials 以上、`AllowedFirstAuthFactors` に `WEB_AUTHN`、`WebAuthnConfiguration`、App Client の `ALLOW_USER_AUTH`）が前提で、いずれもこのリポジトリの管理外。RP ID は `sbms.minatoproject.com` で、**このドメイン以外（`localhost` など）では登録もログインもできない**。RP ID を変えると登録済みのパスキーはすべて無効になる
 - **規約への同意・再同意**: ログイン後、現在の規約バージョンに同意していないユーザーには、同意するまで本体の画面を表示せず、同意画面（`ConsentGate` / `ConsentPage`）を出す。規約を改定してバージョンを更新すると、既存の全ユーザーに再同意を求められる。同意状況の取得に失敗した場合は、全員がログインできなくなるのを避けるため、利用を許可する（次回のログインで再確認される）
   - 新規登録画面で同意したユーザーには、初回ログイン直後に同じ同意を再度求めない。登録直後は未認証で同意を記録できないため、登録成功時にメールアドレスと時刻を `localStorage`（`tsundoku.signupConsent`）に控え、初回ログイン時に自動で記録する。控えの有効期間は 24 時間（Cognito の確認コードの有効期間に合わせている）
 - **パスワード変更**: AWS Amplify UI によるパスワード変更

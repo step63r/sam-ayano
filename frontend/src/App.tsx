@@ -18,6 +18,7 @@ import PageHeader from './components/PageHeader';
 import Settings from './components/Settings';
 import ChangePassword from './components/ChangePassword';
 import ChangeEmail from './components/ChangeEmail';
+import Passkeys from './components/Passkeys';
 import DeleteUser from './components/DeleteUser';
 import Terms from './components/Terms';
 import PrivacyPolicy from './components/PrivacyPolicy';
@@ -27,6 +28,16 @@ import ReadLendBarcode from './components/ReadLendBarcode';
 import LendComplete from './components/LendComplete';
 
 I18n.putVocabularies(translations);
+// Amplify UI の日本語訳にパスキー関連の文言が無く、英語のまま表示されるため補う
+I18n.putVocabulariesForLanguage('ja', {
+  'Sign In with Passkey': 'パスキーでサインイン',
+  'Sign In with Password': 'パスワードでサインイン',
+  'Other sign-in options': 'ほかのサインイン方法',
+  'Please enter your username first': '先にメールアドレスを入力してください',
+  'Passkey': 'パスキー',
+  'Passkey authentication was canceled. Please try again or use a different sign-in method.':
+    'パスキーの認証がキャンセルされました。もう一度お試しいただくか、ほかのサインイン方法をお使いください。',
+});
 I18n.setLanguage('ja');
 
 /**
@@ -86,6 +97,7 @@ const App: React.FC = () => {
               <Route path='/settings' element={<Settings />} />
               <Route path='/settings/changePassword' element={<ChangePassword />} />
               <Route path='/settings/changeEmail' element={<ChangeEmail />} />
+              <Route path='/settings/passkeys' element={<Passkeys />} />
               <Route path='/settings/deleteUser' element={<DeleteUser />} />
               <Route path='/terms' element={<Terms />} />
               <Route path='/privacyPolicy' element={<PrivacyPolicy />} />
