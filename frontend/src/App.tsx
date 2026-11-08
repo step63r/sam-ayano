@@ -28,16 +28,6 @@ import ReadLendBarcode from './components/ReadLendBarcode';
 import LendComplete from './components/LendComplete';
 
 I18n.putVocabularies(translations);
-// Amplify UI の日本語訳にパスキー関連の文言が無く、英語のまま表示されるため補う
-I18n.putVocabulariesForLanguage('ja', {
-  'Sign In with Passkey': 'パスキーでサインイン',
-  'Sign In with Password': 'パスワードでサインイン',
-  'Other sign-in options': 'ほかのサインイン方法',
-  'Please enter your username first': '先にメールアドレスを入力してください',
-  'Passkey': 'パスキー',
-  'Passkey authentication was canceled. Please try again or use a different sign-in method.':
-    'パスキーの認証がキャンセルされました。もう一度お試しいただくか、ほかのサインイン方法をお使いください。',
-});
 I18n.setLanguage('ja');
 
 /**

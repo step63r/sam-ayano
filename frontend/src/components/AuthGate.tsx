@@ -6,6 +6,7 @@ import { BookOpen } from "lucide-react";
 import { rememberSignupConsent } from "../lib/consent";
 import AmplifyThemeScope from "./AmplifyThemeScope";
 import LegalDocuments from "./LegalDocuments";
+import SignInForm from "./SignInForm";
 import ThemeToggle from "./ThemeToggle";
 
 /**
@@ -105,11 +106,12 @@ const services: React.ComponentProps<typeof Authenticator>["services"] = {
 
 /**
  * 認証の入口。未ログインの間はログイン・新規登録画面を出し、ログインしたら子要素を表示する。
- * ログイン・新規登録・確認コード・パスワード再設定の処理自体は Amplify の Authenticator に任せ、
- * 見た目と、新規登録時の規約同意だけをここで差し替えている
+ * 新規登録・確認コード・パスワード再設定の処理自体は Amplify の Authenticator に任せ、
+ * 見た目と、新規登録時の規約同意だけをここで差し替えている。
+ * ログインだけは、メールアドレス入力 → パスキー or パスワードの2段階にするため、自作の SignInForm に置き換えている
  */
 const AuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { authStatus } = useAuthenticator((context) => [context.authStatus]);
+  const { authStatus, route } = useAuthenticator((context) => [context.authStatus, context.route]);
 
   if (authStatus === "authenticated") {
     return <>{children}</>;
@@ -122,18 +124,27 @@ const AuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <ThemeToggle />
       </div>
       <div className="glass w-full max-w-md rounded-3xl pb-4 sm:max-w-lg">
-        <AmplifyThemeScope>
-          {/*
-            パスワード欄を出す従来の画面を既定にし、パスキーは「ほかのサインイン方法」から選ばせる。
-            既定をパスキーにすると、パスキー未登録の既存ユーザーのログイン画面からパスワード欄が消える
-          */}
-          <Authenticator
-            components={components}
-            services={services}
-            formFields={formFields}
-            passwordless={{ preferredAuthMethod: "PASSWORD" }}
-          />
-        </AmplifyThemeScope>
+        {route === "signIn" && (
+          <>
+            <AuthHeader />
+            <SignInForm />
+          </>
+        )}
+        {/*
+          ログイン画面の間も Authenticator は外さず、非表示にして残す。外すと、再び表示したときに
+          初期化されて、新規登録やパスワード再設定の画面に遷移できなくなるおそれがあるため。
+          passwordless は、新規登録の項目がパスワード入力のままになるよう、既定の方法を明示している
+        */}
+        <div className={route === "signIn" ? "hidden" : undefined}>
+          <AmplifyThemeScope>
+            <Authenticator
+              components={components}
+              services={services}
+              formFields={formFields}
+              passwordless={{ preferredAuthMethod: "PASSWORD" }}
+            />
+          </AmplifyThemeScope>
+        </div>
       </div>
     </div>
   );

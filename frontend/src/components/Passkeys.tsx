@@ -157,7 +157,7 @@ const Passkeys: React.FC = () => {
           <div className="glass flex flex-col gap-3 rounded-3xl p-5">
             <p className="text-sm text-muted-foreground">
               パスキーを登録すると、指紋や顔、端末の画面ロックなどでログインできます。
-              ログイン画面で「ほかのサインイン方法」を選んでください。パスワードでのログインも引き続き使えます。
+              ログイン画面でメールアドレスを入力して「次へ」を押すと、パスキーでのログインに進みます。パスワードでのログインも引き続き使えます。
             </p>
             {!supported && (
               <p className="text-sm font-bold text-destructive">
